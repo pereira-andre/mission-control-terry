@@ -1028,18 +1028,20 @@
     }
 
     function initTty() {
-      ttyWrite("SYS", "MISSION CONTROL READY", "ok");
-      ttyWrite("TIP", "help | new | edit | export | import | clear");
+      ttyWrite("SYS", "MISSION CONTROL READY", "ok", false);
+      ttyWrite("TIP", "help | new | edit | export | import | clear", "", false);
+      const pane = $("ttyOutput").closest(".right");
+      if (pane) pane.scrollTop = 0;
     }
 
-    function ttyWrite(tag, text, cls = "") {
+    function ttyWrite(tag, text, cls = "", autoScroll = true) {
       ttyLines.push({ tag, text, cls });
       $("ttyState").textContent = `${ttyLines.length}L`;
       $("ttyOutput").innerHTML = ttyLines.map((line) => `
         <div class="tty-line ${escapeAttr(line.cls)}"><span class="tty-tag">${escapeHtml(line.tag)}</span><span class="tty-text">${escapeHtml(line.text)}</span></div>
       `).join("");
       const pane = $("ttyOutput").closest(".right");
-      if (pane) pane.scrollTop = pane.scrollHeight;
+      if (autoScroll && pane) pane.scrollTop = pane.scrollHeight;
     }
 
     async function runTtyCommand(raw) {
