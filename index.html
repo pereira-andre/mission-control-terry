@@ -395,15 +395,18 @@
       display: grid;
       gap: 2px;
       padding: 4px 5px;
-      border-bottom: 2px solid var(--light-gray);
+      border-bottom: 2px solid var(--blue);
       background: var(--white);
+      color: var(--black);
       cursor: pointer;
     }
 
     .card:hover,
     .card.active {
-      background: var(--light-gray);
+      background: var(--white);
       box-shadow: inset 4px 0 0 var(--magenta);
+      outline: 2px solid var(--magenta);
+      outline-offset: -2px;
     }
 
     .card h3 {
@@ -415,7 +418,8 @@
 
     .card p {
       margin: 0;
-      color: var(--green);
+      color: var(--black);
+      font-weight: 900;
       overflow-wrap: anywhere;
     }
 
@@ -430,6 +434,7 @@
     .card-link {
       color: var(--magenta);
       font-size: 13px;
+      font-weight: 900;
       overflow-wrap: anywhere;
     }
 
