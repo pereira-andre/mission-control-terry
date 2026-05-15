@@ -666,8 +666,6 @@
             <button type="button" data-command="focus-search">Search</button>
             <button type="button" data-command="clear-search">Clear Search</button>
             <button type="button" data-command="theme">Toggle Day/Night</button>
-            <button type="button" data-command="day">Day Mode</button>
-            <button type="button" data-command="night">Night Mode</button>
           </div>
         </div>
         <div class="menu-group">
@@ -1095,8 +1093,6 @@
         case "import": $("importData").click(); break;
         case "export": exportData(); break;
         case "theme": setTheme(theme === "night" ? "light" : "night", true); break;
-        case "day": setTheme("light", true); break;
-        case "night": setTheme("night", true); break;
         case "focus-search": focusField("search"); break;
         case "clear-search": search = ""; $("search").value = ""; render(); break;
         case "help":
