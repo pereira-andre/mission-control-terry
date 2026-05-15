@@ -1,0 +1,1576 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mission Control</title>
+  <meta name="description" content="A free local-first 16-color mission board dedicated to Terry A. Davis.">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <script>
+    (() => {
+      try {
+        const theme = localStorage.getItem("mission-control.theme") || "light";
+        document.documentElement.dataset.theme = theme === "night" ? "night" : "light";
+      } catch {
+        document.documentElement.dataset.theme = "light";
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --black: #000000;
+      --blue: #0000aa;
+      --green: #00aa00;
+      --cyan: #00aaaa;
+      --red: #aa0000;
+      --magenta: #aa00aa;
+      --brown: #aa5500;
+      --light-gray: #aaaaaa;
+      --dark-gray: #555555;
+      --light-blue: #5555ff;
+      --light-green: #55ff55;
+      --light-cyan: #55ffff;
+      --light-red: #ff5555;
+      --light-magenta: #ff55ff;
+      --yellow: #ffff55;
+      --white: #ffffff;
+      --rail-width: 176px;
+      --tty-width: minmax(360px, 32vw);
+      --mono: "Courier New", monospace;
+    }
+
+    :root[data-theme="night"] {
+      color-scheme: dark;
+      --black: #f2f2f2;
+      --blue: #5555ff;
+      --green: #55ff55;
+      --cyan: #55ffff;
+      --red: #ff5555;
+      --magenta: #ff55ff;
+      --brown: #ff9955;
+      --light-gray: #202020;
+      --dark-gray: #444444;
+      --white: #2b2b2b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--light-gray);
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 16px;
+      line-height: 1;
+      letter-spacing: 0;
+      font-variant-ligatures: none;
+      text-rendering: optimizeSpeed;
+      -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, var(--light-gray) 0 7px, transparent 7px 100%),
+        linear-gradient(var(--light-gray) 0 7px, transparent 7px 100%),
+        var(--white);
+      background-size: 8px 8px;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+      font-weight: 900;
+    }
+
+    button {
+      min-height: 20px;
+      border: 0;
+      border-radius: 0;
+      background: var(--blue);
+      color: var(--white);
+      padding: 0 6px;
+      cursor: pointer;
+    }
+
+    button:hover,
+    button:focus {
+      background: var(--yellow);
+      color: #000;
+      outline: 0;
+    }
+
+    button.warn {
+      background: var(--red);
+      color: #fff;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      min-height: 22px;
+      border: 2px solid var(--blue);
+      border-radius: 0;
+      background: var(--white);
+      color: var(--blue);
+      padding: 2px 4px;
+      box-shadow: none;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 62px;
+      resize: vertical;
+    }
+
+    label {
+      display: grid;
+      gap: 2px;
+      color: var(--magenta);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .screen {
+      display: grid;
+      grid-template-rows: 23px 21px minmax(0, 1fr);
+      min-height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
+    }
+
+    .top {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      min-height: 23px;
+      padding: 0 4px;
+      background: var(--white);
+      border-bottom: 2px solid var(--black);
+      z-index: 10;
+    }
+
+    .vis-title {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    .menu-strip {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      white-space: nowrap;
+      color: var(--blue);
+    }
+
+    .menu-group {
+      position: relative;
+    }
+
+    .menu-button {
+      min-height: 19px;
+      padding: 0 9px;
+      background: var(--white);
+      color: var(--blue);
+      text-transform: none;
+    }
+
+    .menu-button:hover,
+    .menu-group.open .menu-button {
+      background: var(--blue);
+      color: var(--yellow);
+    }
+
+    .menu-panel {
+      display: none;
+      position: absolute;
+      top: 19px;
+      left: 0;
+      min-width: 150px;
+      padding: 1px 4px 4px;
+      background: var(--blue);
+      border: 2px solid var(--black);
+      box-shadow: 4px 4px 0 var(--dark-gray);
+      z-index: 12;
+    }
+
+    .menu-group.open .menu-panel {
+      display: grid;
+    }
+
+    .menu-panel button {
+      min-height: 18px;
+      padding: 0 4px;
+      background: var(--blue);
+      color: var(--yellow);
+      text-align: left;
+      text-transform: none;
+    }
+
+    .menu-panel button:hover,
+    .menu-panel button:focus {
+      background: var(--white);
+      color: var(--blue);
+    }
+
+    .sep {
+      height: 2px;
+      margin: 2px 0;
+      background: var(--white);
+    }
+
+    .ticker {
+      height: 21px;
+      overflow: hidden;
+      background: var(--blue);
+      border-bottom: 2px solid var(--black);
+      color: var(--white);
+      white-space: nowrap;
+    }
+
+    .ticker span {
+      display: inline-block;
+      padding-left: 100%;
+      line-height: 21px;
+      animation: crawl 28s linear infinite;
+    }
+
+    @keyframes crawl {
+      from { transform: translateX(0); }
+      to { transform: translateX(-100%); }
+    }
+
+    .console {
+      display: grid;
+      grid-template-columns: var(--rail-width) 4px minmax(0, 1fr) 4px var(--tty-width);
+      min-height: 0;
+      overflow: hidden;
+      background: var(--white);
+    }
+
+    .rail {
+      grid-column: 1;
+      padding: 4px;
+      overflow: hidden;
+      background: var(--blue);
+      border-right: 2px solid var(--black);
+      color: var(--yellow);
+      white-space: pre;
+      font-weight: 900;
+    }
+
+    .rail span { display: block; }
+    .rail .hot { color: var(--yellow); }
+    .rail .magic { color: var(--light-cyan); }
+    .rail .ok { color: var(--light-green); }
+    .rail .warn { color: var(--white); }
+    .rail .bad { color: var(--light-red); }
+    .rail .dim { color: var(--light-gray); }
+    .rail .sep-line { color: var(--white); }
+
+    .layout-resizer {
+      background: var(--black);
+      cursor: col-resize;
+      z-index: 5;
+    }
+
+    .layout-resizer:hover,
+    .layout-resizer.dragging {
+      background: var(--magenta);
+    }
+
+    .layout-resizer[data-resize-layout="rail"] { grid-column: 2; }
+    .layout-resizer[data-resize-layout="tty"] { grid-column: 4; }
+
+    .main {
+      grid-column: 3;
+      min-height: 0;
+      overflow: auto;
+      border-right: 2px solid var(--black);
+      background: var(--white);
+    }
+
+    .right {
+      grid-column: 5;
+      min-height: 0;
+      overflow: auto;
+      background: var(--white);
+      border-left: 2px solid var(--black);
+      padding-bottom: 24px;
+    }
+
+    .bar,
+    .lane-title {
+      height: 20px;
+      min-height: 20px;
+      padding: 1px 4px;
+      background: var(--blue);
+      border-bottom: 2px solid var(--black);
+      color: var(--yellow);
+      font-weight: 900;
+    }
+
+    .panel-body {
+      padding: 3px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(72px, 1fr));
+      border-bottom: 2px solid var(--blue);
+    }
+
+    .metric {
+      min-height: 44px;
+      padding: 3px 5px;
+      border-right: 2px solid var(--blue);
+      background: var(--white);
+    }
+
+    .metric b {
+      display: block;
+      font-size: 19px;
+    }
+
+    .metric span {
+      color: var(--green);
+      font-size: 13px;
+    }
+
+    .command {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) auto;
+      gap: 4px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 2px;
+      flex-wrap: wrap;
+    }
+
+    .lanes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(185px, 1fr));
+      border-top: 2px solid var(--black);
+    }
+
+    .lane {
+      min-height: calc(100vh - 170px);
+      border-right: 2px solid var(--blue);
+      background: var(--white);
+    }
+
+    .lane-list {
+      min-height: 96px;
+      padding: 0;
+      background: var(--white);
+    }
+
+    .lane-list.drag-over {
+      outline: 2px solid var(--magenta);
+      outline-offset: -2px;
+      background: var(--light-cyan);
+    }
+
+    .card {
+      display: grid;
+      gap: 2px;
+      padding: 4px 5px;
+      border-bottom: 2px solid var(--light-gray);
+      background: var(--white);
+      cursor: pointer;
+    }
+
+    .card:hover,
+    .card.active {
+      background: var(--light-gray);
+      box-shadow: inset 4px 0 0 var(--magenta);
+    }
+
+    .card h3 {
+      margin: 0;
+      color: var(--blue);
+      font-size: 16px;
+      text-transform: uppercase;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--green);
+      overflow-wrap: anywhere;
+    }
+
+    .card-media {
+      width: 100%;
+      height: 58px;
+      object-fit: cover;
+      border: 2px solid var(--blue);
+      background: #000;
+    }
+
+    .card-link {
+      color: var(--magenta);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+
+    .chip {
+      border: 1px solid var(--blue);
+      padding: 0 3px;
+      color: var(--blue);
+      font-size: 12px;
+    }
+
+    .card-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .empty {
+      min-height: 44px;
+      padding: 6px;
+      color: var(--magenta);
+      font-weight: 900;
+    }
+
+    .tty {
+      min-height: calc(100vh - 54px);
+      background: var(--white);
+      color: var(--blue);
+    }
+
+    .tty-output {
+      padding: 4px;
+      color: var(--blue);
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .tty-line {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 4px;
+      margin-bottom: 1px;
+    }
+
+    .tty-tag { color: var(--magenta); }
+    .tty-text { color: var(--blue); overflow-wrap: anywhere; }
+    .tty-line.ok .tty-text { color: var(--green); }
+    .tty-line.warn .tty-text { color: var(--brown); }
+    .tty-line.bad .tty-text { color: var(--red); }
+    .tty-line.cmd .tty-tag,
+    .tty-line.cmd .tty-text { color: var(--magenta); }
+
+    .tty-form {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      gap: 4px;
+      padding: 0 4px 6px;
+      background: var(--white);
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    .tty-form::before {
+      content: "C:\\SYS>";
+      color: var(--magenta);
+    }
+
+    .tty-form input {
+      min-height: 18px;
+      padding: 0;
+      border: 0;
+      background: var(--white);
+      color: var(--blue);
+    }
+
+    .tty-form button {
+      display: none;
+    }
+
+    .float-window {
+      position: fixed;
+      z-index: 20;
+      width: min(560px, calc(100vw - 20px));
+      min-width: 260px;
+      min-height: 150px;
+      max-height: min(560px, calc(100vh - 50px));
+      overflow: hidden;
+      resize: both;
+      border: 2px solid var(--black);
+      background: var(--white);
+      box-shadow: 5px 5px 0 var(--dark-gray);
+    }
+
+    .float-window[hidden] { display: none; }
+
+    .window-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      height: 21px;
+      padding: 1px 2px 1px 5px;
+      background: var(--blue);
+      border-bottom: 2px solid var(--black);
+      color: var(--yellow);
+      cursor: move;
+      user-select: none;
+    }
+
+    .window-titlebar button {
+      width: 20px;
+      min-height: 17px;
+      padding: 0;
+      background: var(--white);
+      color: var(--blue);
+    }
+
+    .window-body {
+      max-height: calc(min(560px, 100vh - 50px) - 23px);
+      overflow: auto;
+      padding: 4px;
+      background: var(--white);
+    }
+
+    .editor,
+    .split,
+    .mini-row {
+      display: grid;
+      gap: 4px;
+    }
+
+    .split { grid-template-columns: 1fr 1fr; }
+    .mini-row { grid-template-columns: repeat(3, minmax(70px, 1fr)); }
+
+    .message-text {
+      min-height: 84px;
+      margin-bottom: 6px;
+      padding: 4px;
+      border: 2px solid var(--blue);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-weight: 900;
+    }
+
+    .message-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 3px;
+    }
+
+    .tribute {
+      position: fixed;
+      right: 6px;
+      bottom: 3px;
+      z-index: 12;
+      padding: 1px 5px;
+      border: 2px solid var(--black);
+      background: var(--blue);
+      color: var(--light-gray);
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      z-index: 100;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      border: 2px solid var(--black);
+      background: var(--yellow);
+      color: #000;
+      padding: 8px 12px;
+      font-weight: 900;
+      transition: 160ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .file-input { display: none; }
+
+    @media (max-width: 1040px) {
+      body { overflow: auto; }
+      .screen { max-height: none; overflow: visible; }
+      .console { grid-template-columns: 1fr; overflow: visible; }
+      .rail,
+      .layout-resizer { display: none; }
+      .main,
+      .right { grid-column: auto; overflow: visible; }
+      .right { border-top: 2px solid var(--black); }
+      .split { grid-template-columns: 1fr; }
+      .tribute { position: static; display: inline-block; margin: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="top">
+      <h1 class="vis-title">Mission Control</h1>
+      <nav class="menu-strip" id="menuStrip" aria-label="system menu">
+        <div class="menu-group">
+          <button class="menu-button" type="button" data-menu="file" aria-expanded="false">File</button>
+          <div class="menu-panel" data-panel="file">
+            <button type="button" data-command="new">New Mission</button>
+            <button type="button" data-command="brief">Copy Brief</button>
+            <span class="sep" aria-hidden="true"></span>
+            <button type="button" data-command="import">Import JSON</button>
+            <button type="button" data-command="export">Export JSON</button>
+          </div>
+        </div>
+        <div class="menu-group">
+          <button class="menu-button" type="button" data-menu="edit" aria-expanded="false">Edit</button>
+          <div class="menu-panel" data-panel="edit">
+            <button type="button" data-command="clone">Clone Mission</button>
+            <button class="warn" type="button" data-command="delete">Delete Mission</button>
+            <span class="sep" aria-hidden="true"></span>
+            <button type="button" data-command="move-queue">Move Queue</button>
+            <button type="button" data-command="move-scan">Move Scan</button>
+            <button type="button" data-command="move-done">Move Done</button>
+          </div>
+        </div>
+        <div class="menu-group">
+          <button class="menu-button" type="button" data-menu="view" aria-expanded="false">View</button>
+          <div class="menu-panel" data-panel="view">
+            <button type="button" data-command="focus-search">Search</button>
+            <button type="button" data-command="clear-search">Clear Search</button>
+            <button type="button" data-command="theme">Toggle Day/Night</button>
+          </div>
+        </div>
+        <div class="menu-group">
+          <button class="menu-button" type="button" data-menu="help" aria-expanded="false">Help</button>
+          <div class="menu-panel" data-panel="help">
+            <button type="button" data-command="help">Commands</button>
+            <button type="button" data-command="about">About</button>
+            <button type="button" data-command="tribute">Terry A. Davis</button>
+          </div>
+        </div>
+      </nav>
+      <input class="file-input" id="importData" type="file" accept="application/json,.json">
+    </header>
+
+    <div class="ticker">
+      <span id="ticker">SYS_BOOT OK / MISSION FILE READY / LOCAL-FIRST BOARD</span>
+    </div>
+
+    <main class="console">
+      <aside class="rail" id="rail">SYS.PROBE BOOT</aside>
+      <div class="layout-resizer" data-resize-layout="rail" aria-hidden="true"></div>
+
+      <section class="main">
+        <div>
+          <div class="bar">SYS.STATUS <span id="saveState">LOCAL</span></div>
+          <div class="panel-body">
+            <div class="metrics" id="metrics"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="bar">MISSION.INDEX <span id="visibleCount">0</span></div>
+          <div class="panel-body">
+            <div class="command">
+              <input id="search" type="search" placeholder="C:\MISSION> FIND ...">
+              <div class="filters" id="filters">
+                <button type="button" data-filter="all">ALL</button>
+                <button type="button" data-filter="queue">QUEUE</button>
+                <button type="button" data-filter="scan">SCAN</button>
+                <button type="button" data-filter="done">DONE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section class="lanes" id="lanes" aria-label="missions"></section>
+      </section>
+
+      <div class="layout-resizer" data-resize-layout="tty" aria-hidden="true"></div>
+
+      <aside class="right">
+        <div class="bar">SYS.TTY <span id="ttyState">READY</span></div>
+        <div class="tty">
+          <div class="tty-output" id="ttyOutput"></div>
+          <form class="tty-form" id="ttyForm">
+            <input id="ttyInput" type="text" autocomplete="off" placeholder="help">
+            <button type="submit" aria-label="run">RUN</button>
+          </form>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <section class="float-window" id="missionWindow" data-window hidden style="left: 215px; top: 72px;">
+    <div class="window-titlebar" data-drag-window>
+      <span>MISSION.EDIT</span>
+      <span id="selectedCode">NONE</span>
+      <button type="button" data-close-window="missionWindow">X</button>
+    </div>
+    <div class="window-body">
+      <form class="editor" id="editor">
+        <label>NAME
+          <input id="editTitle" type="text" placeholder="Mission name">
+        </label>
+        <label>NEXT ACTION
+          <textarea id="editNext" placeholder="Single next action"></textarea>
+        </label>
+        <div class="split">
+          <label>STATE
+            <select id="editStatus">
+              <option value="queue">QUEUE</option>
+              <option value="scan">SCAN</option>
+              <option value="done">DONE</option>
+            </select>
+          </label>
+          <label>PRIORITY
+            <select id="editPriority">
+              <option value="critical">CRITICAL</option>
+              <option value="high">HIGH</option>
+              <option value="medium">MEDIUM</option>
+              <option value="low">LOW</option>
+            </select>
+          </label>
+        </div>
+        <div class="split">
+          <label>CODE
+            <input id="editCode" type="text">
+          </label>
+          <label>LOAD %
+            <input id="editProgress" type="number" min="0" max="100" step="5">
+          </label>
+        </div>
+        <div class="split">
+          <label>URL
+            <input id="editUrl" type="url" placeholder="https://...">
+          </label>
+          <label>IMAGE URL
+            <input id="editImage" type="url" placeholder="https://...jpg">
+          </label>
+        </div>
+        <label>TAGS
+          <input id="editTags" type="text" placeholder="ops, research, launch">
+        </label>
+        <div class="mini-row">
+          <button type="submit">SAVE</button>
+          <button type="button" id="cloneMission">CLONE</button>
+          <button class="warn" type="button" id="deleteMission">DELETE</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="float-window" id="messageWindow" data-window hidden style="left: 285px; top: 128px;">
+    <div class="window-titlebar" data-drag-window>
+      <span id="messageWindowTitle">SYS.MESSAGE</span>
+      <button type="button" data-close-window="messageWindow">X</button>
+    </div>
+    <div class="window-body">
+      <div class="message-text" id="messageWindowBody"></div>
+      <div class="message-actions" id="messageWindowActions"></div>
+    </div>
+  </section>
+
+  <div class="tribute">In memory of Terry A. Davis - 1969-2018</div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    "use strict";
+
+    const STORE_KEY = "mission-control.free.v1";
+    const THEME_KEY = "mission-control.theme";
+    const LAYOUT_KEY = "mission-control.layout.v1";
+    const STATUSES = {
+      queue: { title: "QUEUE", color: "var(--magenta)" },
+      scan: { title: "SCAN", color: "var(--cyan)" },
+      done: { title: "DONE", color: "var(--green)" }
+    };
+    const LANES = ["queue", "scan", "done"];
+    const PRIORITY = { critical: 0, high: 1, medium: 2, low: 3 };
+
+    let state = loadState();
+    let selectedId = state.missions[0]?.id || null;
+    let filter = "all";
+    let search = "";
+    let theme = document.documentElement.dataset.theme === "night" ? "night" : "light";
+    let windowZ = 20;
+    let toastTimer = null;
+    let dialogAction = null;
+    let systemProbe = { storage: null, battery: null };
+    let ttyLines = [];
+
+    const $ = (id) => document.getElementById(id);
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (raw) return normalizeData(JSON.parse(raw));
+      } catch {}
+      return normalizeData({ missions: [] });
+    }
+
+    function normalizeData(data = {}) {
+      return {
+        version: data.version || 1,
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        missions: Array.isArray(data.missions) ? data.missions.map(normalizeMission) : []
+      };
+    }
+
+    function normalizeMission(item = {}, index = 0) {
+      const status = STATUSES[item.status] ? item.status : "queue";
+      return {
+        id: item.id || crypto.randomUUID(),
+        title: item.title || "NEW MISSION",
+        codename: item.codename || `M-${String(index + 1).padStart(3, "0")}`,
+        status,
+        priority: item.priority || "medium",
+        progress: clamp(Number(item.progress || 0), 0, 100),
+        nextAction: item.nextAction || "",
+        referenceUrl: item.referenceUrl || item.url || "",
+        imageUrl: item.imageUrl || item.image || "",
+        tags: Array.isArray(item.tags) ? item.tags : String(item.tags || "").split(",").map((x) => x.trim()).filter(Boolean)
+      };
+    }
+
+    function save(mark = "SAVED") {
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORE_KEY, JSON.stringify(state, null, 2));
+      $("saveState").textContent = mark;
+      setTimeout(() => $("saveState").textContent = "LOCAL", 700);
+    }
+
+    function render() {
+      renderRail();
+      renderMetrics();
+      renderFilters();
+      renderLanes();
+      renderEditor();
+      renderTicker();
+    }
+
+    function renderTicker() {
+      $("ticker").textContent = [
+        "SYS_BOOT OK",
+        `${state.missions.length} MISSIONS`,
+        `${count("queue")} QUEUE`,
+        `${count("scan")} SCAN`,
+        `${count("done")} DONE`,
+        `TIME ${new Date().toLocaleTimeString("en-US")}`
+      ].join(" / ");
+    }
+
+    function renderMetrics() {
+      $("metrics").innerHTML = [
+        ["ALL", state.missions.length, "var(--blue)"],
+        ["QUEUE", count("queue"), "var(--magenta)"],
+        ["SCAN", count("scan"), "var(--cyan)"],
+        ["DONE", count("done"), "var(--green)"]
+      ].map(([label, value, color]) => `
+        <div class="metric"><b style="color:${color}">${escapeHtml(value)}</b><span>${escapeHtml(label)}</span></div>
+      `).join("");
+      $("visibleCount").textContent = `${visibleMissions().length} SHOWING`;
+    }
+
+    function renderFilters() {
+      document.querySelectorAll("[data-filter]").forEach((button) => {
+        button.style.background = button.dataset.filter === filter ? "var(--yellow)" : "var(--blue)";
+        button.style.color = button.dataset.filter === filter ? "#000" : "var(--white)";
+      });
+    }
+
+    function renderLanes() {
+      const visible = visibleMissions();
+      $("lanes").innerHTML = LANES.map((status) => {
+        const items = visible.filter((mission) => mission.status === status);
+        return `
+          <section class="lane">
+            <div class="lane-title">${STATUSES[status].title} <span>${items.length}</span></div>
+            <div class="lane-list" data-drop="${status}">
+              ${items.length ? items.map(renderCard).join("") : `<div class="empty">NO MISSION</div>`}
+            </div>
+          </section>
+        `;
+      }).join("");
+    }
+
+    function renderCard(mission) {
+      const tags = mission.tags.slice(0, 3).map((tag) => `<span class="chip">${escapeHtml(tag)}</span>`).join("");
+      const media = mission.imageUrl ? `<img class="card-media" src="${escapeAttr(mission.imageUrl)}" alt="">` : "";
+      const link = mission.referenceUrl ? `<div class="card-link">URL &gt; ${escapeHtml(displayUrl(mission.referenceUrl))}</div>` : "";
+      return `
+        <article class="card ${mission.id === selectedId ? "active" : ""}" draggable="true" data-id="${mission.id}" data-priority="${mission.priority}">
+          ${media}
+          <h3>${escapeHtml(mission.title)}</h3>
+          <p>${escapeHtml(mission.nextAction || "NO NEXT ACTION")}</p>
+          ${link}
+          <div class="chips">
+            <span class="chip">${escapeHtml(mission.codename)}</span>
+            <span class="chip">${escapeHtml(mission.priority)}</span>
+            <span class="chip">${mission.progress}%</span>
+            ${tags}
+          </div>
+          <div class="card-controls">
+            <button type="button" data-move="queue" data-id="${mission.id}">Q</button>
+            <button type="button" data-move="scan" data-id="${mission.id}">S</button>
+            <button type="button" data-move="done" data-id="${mission.id}">D</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderEditor() {
+      const mission = selectedMission();
+      document.querySelectorAll("#editor input, #editor textarea, #editor select, #cloneMission, #deleteMission").forEach((el) => {
+        el.disabled = !mission;
+      });
+      $("selectedCode").textContent = mission ? mission.codename : "NONE";
+      $("editTitle").value = mission?.title || "";
+      $("editNext").value = mission?.nextAction || "";
+      $("editStatus").value = mission?.status || "queue";
+      $("editPriority").value = mission?.priority || "medium";
+      $("editCode").value = mission?.codename || "";
+      $("editProgress").value = mission?.progress || 0;
+      $("editUrl").value = mission?.referenceUrl || "";
+      $("editImage").value = mission?.imageUrl || "";
+      $("editTags").value = mission?.tags?.join(", ") || "";
+    }
+
+    function renderRail() {
+      const cores = navigator.hardwareConcurrency || 1;
+      const memory = performance.memory || null;
+      const heapPct = memory ? Math.round((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100) : null;
+      const storage = systemProbe.storage || {};
+      const storagePct = storage.quota ? Math.round(((storage.usage || 0) / storage.quota) * 100) : null;
+      const battery = systemProbe.battery;
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || {};
+      const now = new Date();
+      const visibleCores = clamp(Number(cores) || 1, 1, 12);
+      const lines = [
+        ...magicLogoLines(),
+        ["================", "", "sep-line"],
+        ["CPUS  ", String(cores), "ok"],
+        ["RAM   ", navigator.deviceMemory ? `${navigator.deviceMemory}G` : "N/A", "ok"],
+        ["HEAP  ", heapPct === null ? "--" : `${heapPct}%`, heapPct && heapPct > 80 ? "bad" : "warn"],
+        ["STORE ", storagePct === null ? "--" : `${storagePct}%`, storagePct && storagePct > 80 ? "bad" : "warn"],
+        ["BAT   ", battery ? `${Math.round(battery.level * 100)}%${battery.charging ? "+" : ""}` : "--", "ok"],
+        ["NET   ", navigator.onLine ? "ONLINE" : "OFF", navigator.onLine ? "ok" : "bad"],
+        ["TYPE  ", connection.effectiveType || connection.type || "N/A", "dim"],
+        ["RTT   ", connection.rtt ? `${connection.rtt}ms` : "--", "dim"],
+        ["DL    ", connection.downlink ? `${connection.downlink}M` : "--", "dim"],
+        ["HOST  ", location.protocol === "file:" ? "LOCAL" : shortText(location.host, 12), "dim"],
+        ["TIME  ", now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }), "ok"],
+        ["================", "", "sep-line"],
+        ["CORE MAP", "", "warn"],
+        ...Array.from({ length: visibleCores }, (_, index) => [`C${String(index).padStart(2, "0")}`, `[${corePulse(index)}]`, index % 3 === 0 ? "ok" : "warn"]),
+        ["================", "", "sep-line"],
+        ["VIEW  ", `${window.innerWidth}x${window.innerHeight}`, "dim"]
+      ];
+      $("rail").innerHTML = lines.map(([label, value, cls]) => `<span class="${cls || ""}">${escapeHtml(`${label}${value}`)}</span>`).join("");
+    }
+
+    function magicLogoLines() {
+      const glyphs = [
+        [String.raw`   .  *  .   `, String.raw`  --<MC>--  `, String.raw`   \  |  /   `],
+        [String.raw` .   *   .  `, String.raw` --<[M]>--  `, String.raw`    \ | /    `],
+        [String.raw`* .  +  . * `, String.raw`---{MC}---  `, String.raw`     \|/     `],
+        [String.raw`  .  *  .   `, String.raw` --<[M]>--  `, String.raw`     /|\     `],
+        [String.raw`   .  *  .  `, String.raw`  --<MC>--  `, String.raw`   /  |  \   `]
+      ];
+      const frame = Math.floor(Date.now() / 180) % glyphs.length;
+      const pulse = ["SIGNAL", "ORBIT", "ASCEND", "VECTOR", "READY"][frame];
+      const frameLines = glyphs[frame].map((line) => logoBox(line, "magic"));
+      return [
+        [String.raw`+==============+`, "", "magic"],
+        logoBox(" MISSION CTRL", "hot"),
+        ...frameLines,
+        logoBox(` ${pulse}`, "hot"),
+        [String.raw`+==============+`, "", "magic"]
+      ];
+    }
+
+    function logoBox(value, cls) {
+      return [`|${String(value || "").slice(0, 14).padEnd(14, " ")}|`, "", cls];
+    }
+
+    function corePulse(index) {
+      const wave = (Math.sin(Date.now() / 480 + index * 0.9) + 1) / 2;
+      const fill = clamp(Math.round(wave * 8), 1, 8);
+      return `${"#".repeat(fill)}${".".repeat(8 - fill)}`;
+    }
+
+    function initTty() {
+      ttyWrite("SYS", "MISSION CONTROL READY", "ok");
+      ttyWrite("TIP", "help | new | edit | export | import | clear");
+    }
+
+    function ttyWrite(tag, text, cls = "") {
+      ttyLines.push({ tag, text, cls });
+      $("ttyState").textContent = `${ttyLines.length}L`;
+      $("ttyOutput").innerHTML = ttyLines.map((line) => `
+        <div class="tty-line ${escapeAttr(line.cls)}"><span class="tty-tag">${escapeHtml(line.tag)}</span><span class="tty-text">${escapeHtml(line.text)}</span></div>
+      `).join("");
+      const pane = $("ttyOutput").closest(".right");
+      if (pane) pane.scrollTop = pane.scrollHeight;
+    }
+
+    async function runTtyCommand(raw) {
+      const input = String(raw || "").trim();
+      if (!input) return;
+      const lower = input.toLowerCase();
+      ttyWrite("C:\\SYS>", input, "cmd");
+      if (lower === "help" || lower === "?") {
+        ttyWrite("CMD", "new, edit, theme, day, night, export, import", "ok");
+        ttyWrite("CMD", "filter all|queue|scan|done, brief, status, clear", "ok");
+        return;
+      }
+      if (lower === "clear" || lower === "cls") {
+        ttyLines = [];
+        $("ttyOutput").innerHTML = "";
+        ttyWrite("SYS", "TTY CLEAR", "ok");
+        return;
+      }
+      if (lower === "new") return createMission();
+      if (lower === "edit") return openMissionEditor();
+      if (lower === "theme") return setTheme(theme === "night" ? "light" : "night", true);
+      if (lower === "day") return setTheme("light", true);
+      if (lower === "night") return setTheme("night", true);
+      if (lower === "export") return exportData();
+      if (lower === "import") return $("importData").click();
+      if (lower === "brief") return copyBrief();
+      if (lower === "status") {
+        ttyWrite("SYS", `${state.missions.length} missions / ${count("done")} done`, "ok");
+        return;
+      }
+      if (lower.startsWith("filter ")) {
+        const next = lower.replace("filter ", "").trim();
+        if (next === "all" || STATUSES[next]) {
+          filter = next;
+          render();
+          ttyWrite("SYS", `FILTER ${next.toUpperCase()}`, "ok");
+          return;
+        }
+      }
+      ttyWrite("ERR", "UNKNOWN COMMAND. TYPE help", "bad");
+    }
+
+    function runCommand(command) {
+      const moves = { "move-queue": "queue", "move-scan": "scan", "move-done": "done" };
+      if (moves[command]) return selectedId ? moveMission(selectedId, moves[command]) : toast("NO MISSION SELECTED");
+      switch (command) {
+        case "new": createMission(); break;
+        case "clone": cloneMission(); break;
+        case "delete": deleteMission(); break;
+        case "brief": copyBrief(); break;
+        case "import": $("importData").click(); break;
+        case "export": exportData(); break;
+        case "theme": setTheme(theme === "night" ? "light" : "night", true); break;
+        case "focus-search": focusField("search"); break;
+        case "clear-search": search = ""; $("search").value = ""; render(); break;
+        case "help":
+          showMessage("SYS.HELP", "Commands:\nnew, edit, theme, export, import, brief\nfilter all|queue|scan|done\nDrag cards between lanes. Double-use the resize handles.");
+          break;
+        case "about":
+          showMessage("SYS.ABOUT", "Mission Control is a free, local-first, 16-color mission board. It runs entirely in your browser and stores data in localStorage.");
+          break;
+        case "tribute":
+          showMessage("SYS.TRIBUTE", "In memory of Terry A. Davis (1969-2018).\n\nRespect for the engineering and the singular vision.");
+          break;
+        default: toast("NO COMMAND");
+      }
+    }
+
+    function setTheme(nextTheme, notify = false) {
+      theme = nextTheme === "night" ? "night" : "light";
+      document.documentElement.dataset.theme = theme;
+      try { localStorage.setItem(THEME_KEY, theme); } catch {}
+      if (notify) toast(`${theme.toUpperCase()} MODE`);
+    }
+
+    function setFilter(nextFilter) {
+      filter = nextFilter;
+      render();
+    }
+
+    function createMission() {
+      const mission = normalizeMission({
+        id: crypto.randomUUID(),
+        title: "NEW MISSION",
+        codename: `M-${String(state.missions.length + 1).padStart(3, "0")}`,
+        nextAction: "DEFINE NEXT ACTION"
+      }, state.missions.length);
+      state.missions.unshift(mission);
+      selectedId = mission.id;
+      save("NEW");
+      render();
+      openMissionEditor("editTitle");
+      toast("MISSION CREATED");
+    }
+
+    function openMissionEditor(focusId = "editTitle") {
+      if (!selectedMission()) return toast("NO MISSION SELECTED");
+      renderEditor();
+      openWindow("missionWindow");
+      focusField(focusId);
+    }
+
+    function saveMissionEditor() {
+      const mission = selectedMission();
+      if (!mission) return;
+      mission.title = $("editTitle").value.trim() || "NEW MISSION";
+      mission.nextAction = $("editNext").value.trim();
+      mission.status = STATUSES[$("editStatus").value] ? $("editStatus").value : "queue";
+      mission.priority = $("editPriority").value || "medium";
+      mission.codename = $("editCode").value.trim() || nextCode();
+      mission.progress = clamp(Number($("editProgress").value || 0), 0, 100);
+      mission.referenceUrl = $("editUrl").value.trim();
+      mission.imageUrl = $("editImage").value.trim();
+      mission.tags = String($("editTags").value || "").split(",").map((x) => x.trim()).filter(Boolean);
+      if (mission.status === "done") mission.progress = 100;
+      save("MISSION");
+      render();
+      closeWindow("missionWindow");
+      toast("MISSION SAVED");
+    }
+
+    function moveMission(id, status) {
+      const mission = state.missions.find((m) => m.id === id);
+      if (!mission || !STATUSES[status]) return;
+      mission.status = status;
+      if (status === "done") mission.progress = 100;
+      selectedId = id;
+      save("MOVE");
+      render();
+    }
+
+    function cloneMission() {
+      const mission = selectedMission();
+      if (!mission) return;
+      const copy = normalizeMission({ ...mission, id: crypto.randomUUID(), title: `${mission.title} COPY`, codename: nextCode() });
+      state.missions.unshift(copy);
+      selectedId = copy.id;
+      save("CLONE");
+      render();
+      openMissionEditor();
+    }
+
+    function deleteMission() {
+      const mission = selectedMission();
+      if (!mission) return;
+      confirmMessage("SYS.CONFIRM", `DELETE ${mission.codename}?`, "Delete", () => {
+        state.missions = state.missions.filter((item) => item.id !== mission.id);
+        selectedId = state.missions[0]?.id || null;
+        save("DELETE");
+        render();
+        closeWindow("missionWindow");
+      });
+    }
+
+    function exportData() {
+      downloadJson(state, `mission-control-${new Date().toISOString().slice(0, 10)}.json`);
+      ttyWrite("SYS", "JSON EXPORTED", "ok");
+    }
+
+    function importJson(text) {
+      state = normalizeData(JSON.parse(text));
+      selectedId = state.missions[0]?.id || null;
+      save("IMPORT");
+      render();
+      ttyWrite("SYS", "JSON IMPORTED", "ok");
+    }
+
+    async function copyBrief() {
+      const text = state.missions.length
+        ? state.missions.map((m) => `${m.codename} | ${m.status} | ${m.priority}\n${m.title}\nNEXT: ${m.nextAction || "-"}\nURL: ${m.referenceUrl || "-"}\nIMG: ${m.imageUrl || "-"}`).join("\n\n")
+        : "NO MISSIONS";
+      await copyText(text);
+      toast("BRIEF COPIED");
+      ttyWrite("SYS", "BRIEF COPIED", "ok");
+    }
+
+    function visibleMissions() {
+      const q = search.trim().toLowerCase();
+      return state.missions
+        .filter((mission) => filter === "all" || mission.status === filter)
+        .filter((mission) => !q || [mission.title, mission.codename, mission.nextAction, mission.priority, mission.referenceUrl, ...mission.tags].join(" ").toLowerCase().includes(q))
+        .sort((a, b) => (PRIORITY[a.priority] ?? 9) - (PRIORITY[b.priority] ?? 9) || a.title.localeCompare(b.title));
+    }
+
+    function count(status) {
+      return state.missions.filter((mission) => mission.status === status).length;
+    }
+
+    function selectedMission() {
+      return state.missions.find((mission) => mission.id === selectedId) || null;
+    }
+
+    function nextCode() {
+      return `M-${String(state.missions.length + 1).padStart(3, "0")}`;
+    }
+
+    function showMessage(title, message, actions = [{ label: "OK", value: "close" }], onAction = null) {
+      $("messageWindowTitle").textContent = title;
+      $("messageWindowBody").textContent = message;
+      $("messageWindowActions").innerHTML = actions.map((action) => `<button class="${action.warn ? "warn" : ""}" type="button" data-dialog-action="${escapeAttr(action.value)}">${escapeHtml(action.label)}</button>`).join("");
+      dialogAction = onAction;
+      openWindow("messageWindow");
+    }
+
+    function closeMessage() {
+      dialogAction = null;
+      closeWindow("messageWindow");
+    }
+
+    function confirmMessage(title, message, confirmLabel, onConfirm) {
+      showMessage(title, message, [
+        { label: "Cancel", value: "cancel" },
+        { label: confirmLabel, value: "confirm", warn: true }
+      ], (action) => {
+        closeMessage();
+        if (action === "confirm") onConfirm();
+      });
+    }
+
+    function openWindow(id) {
+      const win = $(id);
+      if (!win) return;
+      win.hidden = false;
+      windowZ += 1;
+      win.style.zIndex = String(windowZ);
+    }
+
+    function closeWindow(id) {
+      const win = $(id);
+      if (win) win.hidden = true;
+    }
+
+    function focusField(id) {
+      const el = $(id);
+      if (!el) return;
+      el.focus();
+      if (typeof el.select === "function") el.select();
+    }
+
+    function downloadJson(payload, filename) {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+    }
+
+    function toast(message) {
+      $("toast").textContent = message;
+      $("toast").classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => $("toast").classList.remove("show"), 1400);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#96;").replace(/\r?\n/g, "&#10;");
+    }
+
+    function shortText(value, max = 80) {
+      const text = String(value || "").replace(/\s+/g, " ").trim();
+      return text.length > max ? `${text.slice(0, max - 3)}...` : text;
+    }
+
+    function displayUrl(value) {
+      try {
+        const parsed = new URL(value);
+        return parsed.host + shortText(parsed.pathname, 24);
+      } catch {
+        return shortText(value, 36);
+      }
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function loadLayout() {
+      try {
+        const layout = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}");
+        if (layout.railWidth) document.documentElement.style.setProperty("--rail-width", `${layout.railWidth}px`);
+        if (layout.ttyWidth) document.documentElement.style.setProperty("--tty-width", `${layout.ttyWidth}px`);
+      } catch {}
+    }
+
+    function saveLayout(values = {}) {
+      try {
+        const current = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}");
+        localStorage.setItem(LAYOUT_KEY, JSON.stringify({ ...current, ...values }));
+      } catch {}
+    }
+
+    function initLayoutResize() {
+      let active = null;
+      document.querySelectorAll("[data-resize-layout]").forEach((handle) => {
+        handle.addEventListener("pointerdown", (event) => {
+          active = { handle, type: handle.dataset.resizeLayout, rect: handle.closest(".console").getBoundingClientRect() };
+          handle.classList.add("dragging");
+          handle.setPointerCapture?.(event.pointerId);
+          event.preventDefault();
+        });
+      });
+      document.addEventListener("pointermove", (event) => {
+        if (!active) return;
+        if (active.type === "rail") {
+          const width = clamp(event.clientX - active.rect.left, 130, 280);
+          document.documentElement.style.setProperty("--rail-width", `${width}px`);
+          saveLayout({ railWidth: width });
+        }
+        if (active.type === "tty") {
+          const width = clamp(active.rect.right - event.clientX, 300, Math.min(760, active.rect.width - 360));
+          document.documentElement.style.setProperty("--tty-width", `${width}px`);
+          saveLayout({ ttyWidth: width });
+        }
+      });
+      document.addEventListener("pointerup", () => {
+        if (active) active.handle.classList.remove("dragging");
+        active = null;
+      });
+    }
+
+    function initWindowDrag() {
+      let active = null;
+      document.querySelectorAll("[data-window]").forEach((win) => {
+        win.addEventListener("pointerdown", () => {
+          windowZ += 1;
+          win.style.zIndex = String(windowZ);
+        });
+      });
+      document.querySelectorAll("[data-drag-window]").forEach((bar) => {
+        bar.addEventListener("pointerdown", (event) => {
+          if (event.target.closest("button")) return;
+          const win = bar.closest("[data-window]");
+          const rect = win.getBoundingClientRect();
+          active = { win, dx: event.clientX - rect.left, dy: event.clientY - rect.top };
+          bar.setPointerCapture?.(event.pointerId);
+          event.preventDefault();
+        });
+      });
+      document.addEventListener("pointermove", (event) => {
+        if (!active) return;
+        active.win.style.left = `${clamp(event.clientX - active.dx, 0, Math.max(0, window.innerWidth - active.win.offsetWidth))}px`;
+        active.win.style.top = `${clamp(event.clientY - active.dy, 23, Math.max(23, window.innerHeight - active.win.offsetHeight))}px`;
+      });
+      document.addEventListener("pointerup", () => active = null);
+    }
+
+    async function refreshSystemProbe() {
+      try {
+        if (navigator.storage?.estimate) systemProbe.storage = await navigator.storage.estimate();
+      } catch {}
+      try {
+        if (navigator.getBattery) {
+          const battery = await navigator.getBattery();
+          systemProbe.battery = { level: battery.level, charging: battery.charging };
+        }
+      } catch {}
+      renderRail();
+    }
+
+    $("menuStrip").addEventListener("click", (event) => {
+      const menuButton = event.target.closest("[data-menu]");
+      if (menuButton) {
+        event.stopPropagation();
+        const group = menuButton.closest(".menu-group");
+        const shouldOpen = !group.classList.contains("open");
+        closeMenus();
+        if (shouldOpen) openMenu(menuButton.dataset.menu);
+        return;
+      }
+      const commandButton = event.target.closest("[data-command]");
+      if (!commandButton) return;
+      event.stopPropagation();
+      closeMenus();
+      runCommand(commandButton.dataset.command);
+    });
+
+    $("menuStrip").addEventListener("mouseover", (event) => {
+      const menuButton = event.target.closest("[data-menu]");
+      if (!menuButton || !document.querySelector(".menu-group.open")) return;
+      openMenu(menuButton.dataset.menu);
+    });
+
+    $("menuStrip").addEventListener("mouseleave", closeMenus);
+    document.addEventListener("click", (event) => {
+      const closeButton = event.target.closest("[data-close-window]");
+      if (closeButton) {
+        event.stopPropagation();
+        if (closeButton.dataset.closeWindow === "messageWindow") dialogAction = null;
+        closeWindow(closeButton.dataset.closeWindow);
+        return;
+      }
+      const dialogButton = event.target.closest("[data-dialog-action]");
+      if (dialogButton) {
+        event.stopPropagation();
+        if (dialogAction) dialogAction(dialogButton.dataset.dialogAction);
+        else closeMessage();
+        return;
+      }
+      closeMenus();
+    });
+
+    function openMenu(name) {
+      document.querySelectorAll(".menu-group").forEach((group) => {
+        const isOpen = group.querySelector("[data-menu]")?.dataset.menu === name;
+        group.classList.toggle("open", isOpen);
+        group.querySelector("[data-menu]")?.setAttribute("aria-expanded", String(isOpen));
+      });
+    }
+
+    function closeMenus() {
+      document.querySelectorAll(".menu-group").forEach((group) => {
+        group.classList.remove("open");
+        group.querySelector("[data-menu]")?.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    $("importData").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        importJson(await file.text());
+        toast("IMPORT OK");
+      } catch (err) {
+        toast(err.message);
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    $("search").addEventListener("input", (event) => {
+      search = event.target.value;
+      render();
+    });
+
+    $("filters").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-filter]");
+      if (!button) return;
+      setFilter(button.dataset.filter);
+    });
+
+    $("lanes").addEventListener("click", (event) => {
+      const mover = event.target.closest("[data-move]");
+      if (mover) {
+        event.stopPropagation();
+        moveMission(mover.dataset.id, mover.dataset.move);
+        return;
+      }
+      const card = event.target.closest("[data-id]");
+      if (!card) return;
+      selectedId = card.dataset.id;
+      render();
+      openMissionEditor();
+    });
+
+    $("lanes").addEventListener("dragstart", (event) => {
+      const card = event.target.closest(".card");
+      if (!card) return;
+      event.dataTransfer.setData("text/plain", card.dataset.id);
+    });
+
+    $("lanes").addEventListener("dragover", (event) => {
+      const drop = event.target.closest("[data-drop]");
+      if (!drop) return;
+      event.preventDefault();
+      drop.classList.add("drag-over");
+    });
+
+    $("lanes").addEventListener("dragleave", (event) => {
+      const drop = event.target.closest("[data-drop]");
+      if (drop) drop.classList.remove("drag-over");
+    });
+
+    $("lanes").addEventListener("drop", (event) => {
+      const drop = event.target.closest("[data-drop]");
+      if (!drop) return;
+      event.preventDefault();
+      drop.classList.remove("drag-over");
+      moveMission(event.dataTransfer.getData("text/plain"), drop.dataset.drop);
+    });
+
+    $("editor").addEventListener("submit", (event) => {
+      event.preventDefault();
+      saveMissionEditor();
+    });
+
+    $("cloneMission").addEventListener("click", cloneMission);
+    $("deleteMission").addEventListener("click", deleteMission);
+    $("ttyForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = $("ttyInput");
+      const value = input.value;
+      input.value = "";
+      try {
+        await runTtyCommand(value);
+      } catch (err) {
+        ttyWrite("ERR", err.message || "COMMAND FAILED", "bad");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenus();
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "n") {
+        event.preventDefault();
+        createMission();
+      }
+    });
+
+    setTheme(theme);
+    loadLayout();
+    initWindowDrag();
+    initLayoutResize();
+    refreshSystemProbe();
+    render();
+    initTty();
+    setInterval(renderRail, 360);
+    setInterval(renderTicker, 1000);
+    setInterval(refreshSystemProbe, 30000);
+  </script>
+</body>
+</html>
