@@ -81,6 +81,7 @@
 
     body {
       overflow: hidden;
+      padding: 10px;
       background:
         linear-gradient(90deg, var(--light-gray) 0 7px, transparent 7px 100%),
         linear-gradient(var(--light-gray) 0 7px, transparent 7px 100%),
@@ -177,8 +178,8 @@
     .screen {
       display: grid;
       grid-template-rows: 23px 21px minmax(0, 1fr);
-      min-height: 100vh;
-      max-height: 100vh;
+      min-height: calc(100vh - 20px);
+      max-height: calc(100vh - 20px);
       overflow: hidden;
     }
 
@@ -619,19 +620,6 @@
       gap: 3px;
     }
 
-    .tribute {
-      position: fixed;
-      right: 6px;
-      bottom: 3px;
-      z-index: 12;
-      padding: 1px 5px;
-      border: 2px solid var(--black);
-      background: var(--blue);
-      color: var(--light-gray);
-      font-size: 13px;
-      pointer-events: none;
-    }
-
     .toast {
       position: fixed;
       left: 50%;
@@ -655,7 +643,7 @@
     .file-input { display: none; }
 
     @media (max-width: 1040px) {
-      body { overflow: auto; }
+      body { overflow: auto; padding: 10px; }
       .screen { max-height: none; overflow: visible; }
       .console { grid-template-columns: 1fr; overflow: visible; }
       .rail,
@@ -664,7 +652,6 @@
       .right { grid-column: auto; overflow: visible; }
       .right { border-top: 2px solid var(--black); }
       .split { grid-template-columns: 1fr; }
-      .tribute { position: static; display: inline-block; margin: 4px; }
     }
   </style>
 </head>
@@ -833,7 +820,6 @@
     </div>
   </section>
 
-  <div class="tribute">In memory of Terry A. Davis - 1969-2018</div>
   <div class="toast" id="toast"></div>
 
   <script>
