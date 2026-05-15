@@ -533,10 +533,9 @@
       display: grid;
       grid-template-columns: 78px minmax(0, 1fr);
       gap: 4px;
-      min-height: 24px;
-      padding: 2px 4px 4px;
+      min-height: 20px;
+      padding: 0 4px 4px;
       background: var(--white);
-      border-top: 2px solid var(--blue);
       color: var(--blue);
       font-weight: 900;
     }
@@ -552,6 +551,7 @@
       border: 0;
       background: var(--white);
       color: var(--blue);
+      outline: 0;
     }
 
     .tty-form button {
@@ -1640,6 +1640,11 @@
       } catch (err) {
         ttyWrite("ERR", err.message || "COMMAND FAILED", "bad");
       }
+    });
+
+    document.querySelector(".right").addEventListener("click", (event) => {
+      if (event.target.closest("input, button, select, textarea")) return;
+      focusField("ttyInput");
     });
 
     document.addEventListener("keydown", (event) => {
