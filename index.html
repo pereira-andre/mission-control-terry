@@ -88,6 +88,29 @@
       background-size: 8px 8px;
     }
 
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 250;
+      border: 2px solid var(--blue);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "EOF";
+      position: fixed;
+      left: 50%;
+      bottom: 1px;
+      z-index: 251;
+      transform: translateX(-50%);
+      padding: 0 6px;
+      background: var(--white);
+      color: var(--blue);
+      font-weight: 900;
+      pointer-events: none;
+    }
+
     button,
     input,
     textarea,
@@ -830,6 +853,7 @@
     let toastTimer = null;
     let dialogAction = null;
     let systemProbe = { storage: null, battery: null };
+    let systemSignals = { fps: 60, lag: 0, frames: 0, lastFrame: performance.now(), uptimeStart: performance.now() };
     let ttyLines = [];
 
     const $ = (id) => document.getElementById(id);
@@ -979,25 +1003,37 @@
       const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || {};
       const now = new Date();
       const visibleCores = clamp(Number(cores) || 1, 1, 12);
+      const fps = Math.round(systemSignals.fps || 0);
+      const lag = Math.round(systemSignals.lag || 0);
+      const load = clamp(Math.round((100 - Math.min(fps, 60) * 1.35) + Math.min(lag * 2.4, 45) + (heapPct || 0) * 0.25), 0, 99);
+      const uptime = Math.floor((performance.now() - systemSignals.uptimeStart) / 1000);
       const lines = [
         ...magicLogoLines(),
         ["================", "", "sep-line"],
         ["CPUS  ", String(cores), "ok"],
         ["RAM   ", navigator.deviceMemory ? `${navigator.deviceMemory}G` : "N/A", "ok"],
         ["HEAP  ", heapPct === null ? "--" : `${heapPct}%`, heapPct && heapPct > 80 ? "bad" : "warn"],
+        ["MEM   ", memory ? `${formatBytes(memory.usedJSHeapSize)}` : "--", "dim"],
         ["STORE ", storagePct === null ? "--" : `${storagePct}%`, storagePct && storagePct > 80 ? "bad" : "warn"],
+        ["DISK  ", storage.quota ? `${formatBytes(storage.usage || 0)}` : "--", "dim"],
         ["BAT   ", battery ? `${Math.round(battery.level * 100)}%${battery.charging ? "+" : ""}` : "--", "ok"],
         ["NET   ", navigator.onLine ? "ONLINE" : "OFF", navigator.onLine ? "ok" : "bad"],
         ["TYPE  ", connection.effectiveType || connection.type || "N/A", "dim"],
         ["RTT   ", connection.rtt ? `${connection.rtt}ms` : "--", "dim"],
         ["DL    ", connection.downlink ? `${connection.downlink}M` : "--", "dim"],
+        ["FPS   ", fps ? String(fps) : "--", fps && fps < 35 ? "bad" : "ok"],
+        ["LAG   ", `${lag}ms`, lag > 35 ? "bad" : "ok"],
+        ["LOAD  ", `${load}%`, load > 75 ? "bad" : load > 45 ? "warn" : "ok"],
+        ["UP    ", `${Math.floor(uptime / 60)}m${String(uptime % 60).padStart(2, "0")}s`, "dim"],
         ["HOST  ", location.protocol === "file:" ? "LOCAL" : shortText(location.host, 12), "dim"],
         ["TIME  ", now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }), "ok"],
         ["================", "", "sep-line"],
-        ["CORE MAP", "", "warn"],
-        ...Array.from({ length: visibleCores }, (_, index) => [`C${String(index).padStart(2, "0")}`, `[${corePulse(index)}]`, index % 3 === 0 ? "ok" : "warn"]),
+        ["SIGNAL MAP", "", "warn"],
+        ...Array.from({ length: visibleCores }, (_, index) => [`C${String(index).padStart(2, "0")}`, `[${corePulse(index, load)}]`, load > 75 ? "bad" : index % 3 === 0 ? "ok" : "warn"]),
         ["================", "", "sep-line"],
-        ["VIEW  ", `${window.innerWidth}x${window.innerHeight}`, "dim"]
+        ["VIEW  ", `${window.innerWidth}x${window.innerHeight}`, "dim"],
+        ["DPR   ", `${window.devicePixelRatio || 1}x`, "dim"],
+        ["LANG  ", navigator.language || "N/A", "dim"]
       ];
       $("rail").innerHTML = lines.map(([label, value, cls]) => `<span class="${cls || ""}">${escapeHtml(`${label}${value}`)}</span>`).join("");
     }
@@ -1026,17 +1062,31 @@
       return [`|${String(value || "").slice(0, 14).padEnd(14, " ")}|`, "", cls];
     }
 
-    function corePulse(index) {
-      const wave = (Math.sin(Date.now() / 480 + index * 0.9) + 1) / 2;
-      const fill = clamp(Math.round(wave * 8), 1, 8);
+    function corePulse(index, load) {
+      const time = performance.now() / 520;
+      const wave = (Math.sin(time + index * 1.13) + 1) / 2;
+      const jitter = ((systemSignals.frames + index * 7) % 11) / 10;
+      const signal = clamp((load / 100) * 0.62 + wave * 0.28 + jitter * 0.1, 0.05, 1);
+      const fill = clamp(Math.round(signal * 8), 1, 8);
       return `${"#".repeat(fill)}${".".repeat(8 - fill)}`;
+    }
+
+    function formatBytes(bytes = 0) {
+      if (!bytes) return "0B";
+      const units = ["B", "K", "M", "G"];
+      let value = bytes;
+      let unit = 0;
+      while (value >= 1024 && unit < units.length - 1) {
+        value /= 1024;
+        unit += 1;
+      }
+      return `${value >= 10 ? Math.round(value) : value.toFixed(1)}${units[unit]}`;
     }
 
     function initTty() {
       ttyWrite("SYS", "MISSION CONTROL READY", "ok", false);
       ttyWrite("TIP", "help | new | edit | export | import | clear", "", false);
-      const pane = $("ttyOutput").closest(".right");
-      if (pane) pane.scrollTop = 0;
+      scrollTtyTop();
     }
 
     function ttyWrite(tag, text, cls = "", autoScroll = true) {
@@ -1049,27 +1099,31 @@
       if (autoScroll && pane) pane.scrollTop = pane.scrollHeight;
     }
 
+    function scrollTtyTop() {
+      const pane = $("ttyOutput").closest(".right");
+      if (pane) pane.scrollTop = 0;
+    }
+
     async function runTtyCommand(raw) {
       const input = String(raw || "").trim();
       if (!input) return;
       const lower = input.toLowerCase();
       ttyWrite("C:\\SYS>", input, "cmd");
       if (lower === "help" || lower === "?") {
-        ttyWrite("CMD", "new, edit, theme, day, night, export, import", "ok");
+        ttyWrite("CMD", "new, edit, theme, export, import", "ok");
         ttyWrite("CMD", "filter all|queue|scan|done, brief, status, clear", "ok");
         return;
       }
       if (lower === "clear" || lower === "cls") {
         ttyLines = [];
         $("ttyOutput").innerHTML = "";
-        ttyWrite("SYS", "TTY CLEAR", "ok");
+        ttyWrite("SYS", "TTY CLEAR", "ok", false);
+        scrollTtyTop();
         return;
       }
       if (lower === "new") return createMission();
       if (lower === "edit") return openMissionEditor();
       if (lower === "theme") return setTheme(theme === "night" ? "light" : "night", true);
-      if (lower === "day") return setTheme("light", true);
-      if (lower === "night") return setTheme("night", true);
       if (lower === "export") return exportData();
       if (lower === "import") return $("importData").click();
       if (lower === "brief") return copyBrief();
@@ -1414,6 +1468,23 @@
       document.addEventListener("pointerup", () => active = null);
     }
 
+    function startSignalProbe() {
+      let lastSecond = performance.now();
+      const tick = (stamp) => {
+        const delta = stamp - systemSignals.lastFrame;
+        systemSignals.lastFrame = stamp;
+        systemSignals.frames += 1;
+        systemSignals.lag = systemSignals.lag * 0.82 + Math.max(0, delta - 16.7) * 0.18;
+        if (stamp - lastSecond >= 1000) {
+          systemSignals.fps = systemSignals.frames * 1000 / (stamp - lastSecond);
+          systemSignals.frames = 0;
+          lastSecond = stamp;
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
     async function refreshSystemProbe() {
       try {
         if (navigator.storage?.estimate) systemProbe.storage = await navigator.storage.estimate();
@@ -1579,6 +1650,7 @@
     loadLayout();
     initWindowDrag();
     initLayoutResize();
+    startSignalProbe();
     refreshSystemProbe();
     render();
     initTty();

@@ -14,6 +14,7 @@ This is a single-file browser app inspired by old command surfaces and the clari
 - Resizable left system rail and right terminal area
 - Resizable floating windows
 - Animated ASCII rail with browser-visible system/network information
+- Signal map based on browser-visible performance signals. Browsers do not expose real per-core CPU usage.
 - Local terminal-style command panel
 - Light/night modes
 
