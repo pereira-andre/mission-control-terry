@@ -340,11 +340,12 @@
 
     .right {
       grid-column: 5;
+      display: grid;
+      grid-template-rows: 20px minmax(0, 1fr);
       min-height: 0;
-      overflow: auto;
+      overflow: hidden;
       background: var(--white);
       border-left: 2px solid var(--black);
-      padding-bottom: 24px;
     }
 
     .bar,
@@ -495,12 +496,18 @@
     }
 
     .tty {
-      min-height: calc(100vh - 54px);
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
       background: var(--white);
       color: var(--blue);
     }
 
     .tty-output {
+      min-height: 0;
+      overflow: auto;
       padding: 4px;
       color: var(--blue);
       font-weight: 900;
@@ -526,8 +533,10 @@
       display: grid;
       grid-template-columns: 78px minmax(0, 1fr);
       gap: 4px;
-      padding: 0 4px 6px;
+      min-height: 24px;
+      padding: 2px 4px 4px;
       background: var(--white);
+      border-top: 2px solid var(--blue);
       color: var(--blue);
       font-weight: 900;
     }
@@ -1087,13 +1096,16 @@
       $("ttyOutput").innerHTML = ttyLines.map((line) => `
         <div class="tty-line ${escapeAttr(line.cls)}"><span class="tty-tag">${escapeHtml(line.tag)}</span><span class="tty-text">${escapeHtml(line.text)}</span></div>
       `).join("");
-      const pane = $("ttyOutput").closest(".right");
-      if (autoScroll && pane) pane.scrollTop = pane.scrollHeight;
+      if (autoScroll) scrollTtyBottom();
     }
 
     function scrollTtyTop() {
-      const pane = $("ttyOutput").closest(".right");
-      if (pane) pane.scrollTop = 0;
+      $("ttyOutput").scrollTop = 0;
+    }
+
+    function scrollTtyBottom() {
+      const output = $("ttyOutput");
+      output.scrollTop = output.scrollHeight;
     }
 
     async function runTtyCommand(raw) {
