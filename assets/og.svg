@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Mission Control preview">
+  <rect width="1200" height="630" fill="#aa0000"/>
+  <rect x="18" y="18" width="1164" height="594" fill="#2b2b2b" stroke="#ffff55" stroke-width="8"/>
+  <rect x="38" y="38" width="1124" height="554" fill="#ffffff" stroke="#000000" stroke-width="6"/>
+  <rect x="58" y="58" width="1084" height="70" fill="#0000aa"/>
+  <text x="82" y="104" font-family="Courier New, monospace" font-size="46" font-weight="700" fill="#ffff55">MISSION CONTROL</text>
+  <text x="82" y="165" font-family="Courier New, monospace" font-size="26" font-weight="700" fill="#00aa00">LOCAL-FIRST / 16-COLOR / MISSION BOARD</text>
+  <rect x="58" y="190" width="250" height="342" fill="#0000aa"/>
+  <text x="78" y="236" font-family="Courier New, monospace" font-size="30" font-weight="700" fill="#55ffff">+============+</text>
+  <text x="78" y="278" font-family="Courier New, monospace" font-size="30" font-weight="700" fill="#ffff55">MISSION CTRL</text>
+  <text x="78" y="320" font-family="Courier New, monospace" font-size="30" font-weight="700" fill="#55ff55">SIGNAL MAP</text>
+  <text x="78" y="362" font-family="Courier New, monospace" font-size="24" font-weight="700" fill="#ffffff">FPS 60  LAG 0ms</text>
+  <text x="78" y="398" font-family="Courier New, monospace" font-size="24" font-weight="700" fill="#ffffff">C00 [######..]</text>
+  <text x="78" y="434" font-family="Courier New, monospace" font-size="24" font-weight="700" fill="#ffffff">C01 [####....]</text>
+  <text x="78" y="470" font-family="Courier New, monospace" font-size="24" font-weight="700" fill="#ffffff">C02 [#######.]</text>
+  <rect x="338" y="190" width="244" height="342" fill="#ffffff" stroke="#0000aa" stroke-width="4"/>
+  <rect x="338" y="190" width="244" height="42" fill="#0000aa"/>
+  <text x="354" y="221" font-family="Courier New, monospace" font-size="26" font-weight="700" fill="#ffff55">QUEUE</text>
+  <rect x="356" y="254" width="208" height="96" fill="#ffffff" stroke="#aa00aa" stroke-width="5"/>
+  <text x="372" y="288" font-family="Courier New, monospace" font-size="24" font-weight="700" fill="#0000aa">!! DEMO SHIP</text>
+  <text x="372" y="322" font-family="Courier New, monospace" font-size="21" font-weight="700" fill="#000000">Record walkthrough</text>
+  <rect x="612" y="190" width="244" height="342" fill="#ffffff" stroke="#0000aa" stroke-width="4"/>
+  <rect x="612" y="190" width="244" height="42" fill="#0000aa"/>
+  <text x="628" y="221" font-family="Courier New, monospace" font-size="26" font-weight="700" fill="#ffff55">SCAN</text>
+  <rect x="886" y="190" width="244" height="342" fill="#ffffff" stroke="#0000aa" stroke-width="4"/>
+  <rect x="886" y="190" width="244" height="42" fill="#0000aa"/>
+  <text x="902" y="221" font-family="Courier New, monospace" font-size="26" font-weight="700" fill="#ffff55">DONE</text>
+  <text x="78" y="574" font-family="Courier New, monospace" font-size="22" font-weight="700" fill="#0000aa">In memory of Terry A. Davis</text>
+</svg>

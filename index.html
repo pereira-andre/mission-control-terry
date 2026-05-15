@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mission Control</title>
   <meta name="description" content="A free local-first 16-color mission board dedicated to Terry A. Davis.">
+  <meta property="og:title" content="Mission Control">
+  <meta property="og:description" content="A free local-first 16-color mission board dedicated to Terry A. Davis.">
+  <meta property="og:image" content="https://pereira-andre.github.io/mission-control-terry/assets/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <script>
     (() => {
@@ -38,6 +42,10 @@
       --rail-width: 176px;
       --tty-width: minmax(360px, 32vw);
       --mono: "Courier New", monospace;
+      --priority-critical: var(--red);
+      --priority-high: var(--brown);
+      --priority-medium: var(--blue);
+      --priority-low: var(--green);
     }
 
     :root[data-theme="night"] {
@@ -390,6 +398,36 @@
       font-size: 13px;
     }
 
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 0;
+      border-bottom: 2px solid var(--blue);
+    }
+
+    .dash-cell {
+      min-height: 48px;
+      padding: 4px 5px;
+      border-right: 2px solid var(--blue);
+      background: var(--white);
+      color: var(--blue);
+      font-weight: 900;
+      overflow: hidden;
+    }
+
+    .dash-cell b {
+      display: block;
+      color: var(--magenta);
+      font-size: 13px;
+    }
+
+    .dash-cell span {
+      display: block;
+      color: var(--black);
+      line-height: 1.05;
+      overflow-wrap: anywhere;
+    }
+
     .command {
       display: grid;
       grid-template-columns: minmax(160px, 1fr) auto;
@@ -434,6 +472,12 @@
       background: var(--white);
       color: var(--black);
       cursor: pointer;
+    }
+
+    .card.dragging {
+      opacity: .55;
+      outline: 2px solid var(--yellow);
+      outline-offset: -2px;
     }
 
     .card:hover,
@@ -485,6 +529,34 @@
       color: var(--blue);
       font-size: 12px;
     }
+
+    .priority-mark {
+      display: inline-block;
+      min-width: 18px;
+      margin-right: 4px;
+      color: var(--priority-medium);
+    }
+
+    .card[data-priority="critical"] {
+      border-left: 6px solid var(--priority-critical);
+    }
+
+    .card[data-priority="high"] {
+      border-left: 6px solid var(--priority-high);
+    }
+
+    .card[data-priority="medium"] {
+      border-left: 6px solid var(--priority-medium);
+    }
+
+    .card[data-priority="low"] {
+      border-left: 6px solid var(--priority-low);
+    }
+
+    .card[data-priority="critical"] .priority-mark { color: var(--priority-critical); }
+    .card[data-priority="high"] .priority-mark { color: var(--priority-high); }
+    .card[data-priority="medium"] .priority-mark { color: var(--priority-medium); }
+    .card[data-priority="low"] .priority-mark { color: var(--priority-low); }
 
     .card-controls {
       display: grid;
@@ -675,8 +747,10 @@
             <button type="button" data-command="new">New Mission</button>
             <button type="button" data-command="brief">Copy Brief</button>
             <span class="sep" aria-hidden="true"></span>
+            <button type="button" data-command="backup">Backup JSON</button>
             <button type="button" data-command="import">Import JSON</button>
             <button type="button" data-command="export">Export JSON</button>
+            <button class="warn" type="button" data-command="reset">Reset Board</button>
           </div>
         </div>
         <div class="menu-group">
@@ -695,6 +769,8 @@
           <div class="menu-panel" data-panel="view">
             <button type="button" data-command="focus-search">Search</button>
             <button type="button" data-command="clear-search">Clear Search</button>
+            <button type="button" data-command="log">System Log</button>
+            <button type="button" data-command="sound">Toggle Sound</button>
             <button type="button" data-command="theme">Toggle Day/Night</button>
           </div>
         </div>
@@ -723,6 +799,7 @@
           <div class="bar">SYS.STATUS <span id="saveState">LOCAL</span></div>
           <div class="panel-body">
             <div class="metrics" id="metrics"></div>
+            <div class="dashboard" id="dashboard"></div>
           </div>
         </div>
 
@@ -829,6 +906,19 @@
     </div>
   </section>
 
+  <section class="float-window" id="logWindow" data-window hidden style="left: 330px; top: 160px;">
+    <div class="window-titlebar" data-drag-window>
+      <span>SYS.LOG</span>
+      <button type="button" data-close-window="logWindow">X</button>
+    </div>
+    <div class="window-body">
+      <div class="message-text" id="logWindowBody"></div>
+      <div class="message-actions">
+        <button type="button" id="clearLog">CLEAR LOG</button>
+      </div>
+    </div>
+  </section>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -837,6 +927,8 @@
     const STORE_KEY = "mission-control.free.v1";
     const THEME_KEY = "mission-control.theme";
     const LAYOUT_KEY = "mission-control.layout.v1";
+    const BACKUP_KEY = "mission-control.backups.v1";
+    const SOUND_KEY = "mission-control.sound.v1";
     const STATUSES = {
       queue: { title: "QUEUE", color: "var(--magenta)" },
       scan: { title: "SCAN", color: "var(--cyan)" },
@@ -844,6 +936,8 @@
     };
     const LANES = ["queue", "scan", "done"];
     const PRIORITY = { critical: 0, high: 1, medium: 2, low: 3 };
+    const PRIORITY_MARKS = { critical: "!!", high: "!>", medium: "->", low: ".." };
+    const COMMANDS = ["help", "new", "edit", "open", "done", "scan", "queue", "find", "filter", "backup", "export", "import", "reset", "log", "sound", "theme", "brief", "status", "clear"];
 
     let state = loadState();
     let selectedId = state.missions[0]?.id || null;
@@ -856,6 +950,8 @@
     let systemProbe = { storage: null, battery: null };
     let systemSignals = { fps: 60, lag: 0, frames: 0, lastFrame: performance.now(), uptimeStart: performance.now() };
     let ttyLines = [];
+    let soundOn = localStorage.getItem(SOUND_KEY) === "on";
+    let audioCtx = null;
 
     const $ = (id) => document.getElementById(id);
 
@@ -871,7 +967,8 @@
       return {
         version: data.version || 1,
         updatedAt: data.updatedAt || new Date().toISOString(),
-        missions: Array.isArray(data.missions) ? data.missions.map(normalizeMission) : []
+        missions: Array.isArray(data.missions) ? data.missions.map(normalizeMission) : [],
+        log: Array.isArray(data.log) ? data.log.slice(-120) : []
       };
     }
 
@@ -883,6 +980,7 @@
         codename: item.codename || `M-${String(index + 1).padStart(3, "0")}`,
         status,
         priority: item.priority || "medium",
+        order: Number.isFinite(Number(item.order)) ? Number(item.order) : index,
         progress: clamp(Number(item.progress || 0), 0, 100),
         nextAction: item.nextAction || "",
         referenceUrl: item.referenceUrl || item.url || "",
@@ -893,7 +991,9 @@
 
     function save(mark = "SAVED") {
       state.updatedAt = new Date().toISOString();
+      addLog(mark, selectedMission()?.codename || "BOARD");
       localStorage.setItem(STORE_KEY, JSON.stringify(state, null, 2));
+      storeAutoBackup(mark);
       $("saveState").textContent = mark;
       setTimeout(() => $("saveState").textContent = "LOCAL", 700);
     }
@@ -901,6 +1001,7 @@
     function render() {
       renderRail();
       renderMetrics();
+      renderDashboard();
       renderFilters();
       renderLanes();
       renderEditor();
@@ -928,6 +1029,18 @@
         <div class="metric"><b style="color:${color}">${escapeHtml(value)}</b><span>${escapeHtml(label)}</span></div>
       `).join("");
       $("visibleCount").textContent = `${visibleMissions().length} SHOWING`;
+    }
+
+    function renderDashboard() {
+      const next = state.missions.find((mission) => mission.status !== "done");
+      const queue = state.missions.filter((mission) => mission.status === "queue");
+      const progress = state.missions.length ? Math.round(state.missions.reduce((sum, mission) => sum + mission.progress, 0) / state.missions.length) : 0;
+      const lastLog = state.log[state.log.length - 1];
+      $("dashboard").innerHTML = [
+        ["NEXT ACTION", next ? `${next.codename} ${next.nextAction || next.title}` : "BOARD CLEAR"],
+        ["TODAY QUEUE", queue.length ? queue.slice(0, 2).map((m) => m.codename).join(" ") : "NONE"],
+        ["PROGRESS", `${progress}% AVG / ${lastLog ? lastLog.action : "NO LOG"}`]
+      ].map(([label, value]) => `<div class="dash-cell"><b>${escapeHtml(label)}</b><span>${escapeHtml(value)}</span></div>`).join("");
     }
 
     function renderFilters() {
@@ -959,7 +1072,7 @@
       return `
         <article class="card ${mission.id === selectedId ? "active" : ""}" draggable="true" data-id="${mission.id}" data-priority="${mission.priority}">
           ${media}
-          <h3>${escapeHtml(mission.title)}</h3>
+          <h3><span class="priority-mark">${escapeHtml(PRIORITY_MARKS[mission.priority] || "->")}</span>${escapeHtml(mission.title)}</h3>
           <p>${escapeHtml(mission.nextAction || "NO NEXT ACTION")}</p>
           ${link}
           <div class="chips">
@@ -1111,11 +1224,13 @@
     async function runTtyCommand(raw) {
       const input = String(raw || "").trim();
       if (!input) return;
+      beep(440);
       const lower = input.toLowerCase();
+      const args = parseCommand(input);
+      const cmd = args[0]?.toLowerCase() || "";
       ttyWrite("C:\\SYS>", input, "cmd");
       if (lower === "help" || lower === "?") {
-        ttyWrite("CMD", "new, edit, theme, export, import", "ok");
-        ttyWrite("CMD", "filter all|queue|scan|done, brief, status, clear", "ok");
+        showHelp();
         return;
       }
       if (lower === "clear" || lower === "cls") {
@@ -1125,11 +1240,21 @@
         scrollTtyTop();
         return;
       }
-      if (lower === "new") return createMission();
+      if (cmd === "new") return createMission(args.slice(1).join(" "));
       if (lower === "edit") return openMissionEditor();
+      if (cmd === "open") return openMissionByCode(args[1]);
+      if (cmd === "done") return setMissionStatusByCode(args[1], "done");
+      if (cmd === "scan") return setMissionStatusByCode(args[1], "scan");
+      if (cmd === "queue") return setMissionStatusByCode(args[1], "queue");
+      if (cmd === "find") return terminalFind(args.slice(1).join(" "));
       if (lower === "theme") return setTheme(theme === "night" ? "light" : "night", true);
-      if (lower === "export") return exportData();
+      if (cmd === "backup") return backupData();
+      if (cmd === "export") return exportData(args[1]);
       if (lower === "import") return $("importData").click();
+      if (lower === "reset") return resetBoard();
+      if (lower === "log") return openLogWindow();
+      if (lower === "sound") return toggleSound();
+      if (lower === "temple") return showTribute();
       if (lower === "brief") return copyBrief();
       if (lower === "status") {
         ttyWrite("SYS", `${state.missions.length} missions / ${count("done")} done`, "ok");
@@ -1157,17 +1282,21 @@
         case "brief": copyBrief(); break;
         case "import": $("importData").click(); break;
         case "export": exportData(); break;
+        case "backup": backupData(); break;
+        case "reset": resetBoard(); break;
+        case "log": openLogWindow(); break;
+        case "sound": toggleSound(); break;
         case "theme": setTheme(theme === "night" ? "light" : "night", true); break;
         case "focus-search": focusField("search"); break;
         case "clear-search": search = ""; $("search").value = ""; render(); break;
         case "help":
-          showMessage("SYS.HELP", "Commands:\nnew, edit, theme, export, import, brief\nfilter all|queue|scan|done\nDrag cards between lanes. Double-use the resize handles.");
+          showHelp();
           break;
         case "about":
           showMessage("SYS.ABOUT", "Mission Control is a free, local-first, 16-color mission board. It runs entirely in your browser and stores data in localStorage.");
           break;
         case "tribute":
-          showMessage("SYS.TRIBUTE", "In memory of Terry A. Davis (1969-2018).\n\nRespect for the engineering and the singular vision.");
+          showTribute();
           break;
         default: toast("NO COMMAND");
       }
@@ -1185,19 +1314,45 @@
       render();
     }
 
-    function createMission() {
+    function createMission(title = "") {
       const mission = normalizeMission({
         id: crypto.randomUUID(),
-        title: "NEW MISSION",
+        title: title || "NEW MISSION",
         codename: `M-${String(state.missions.length + 1).padStart(3, "0")}`,
+        order: nextOrder("queue"),
         nextAction: "DEFINE NEXT ACTION"
       }, state.missions.length);
       state.missions.unshift(mission);
       selectedId = mission.id;
       save("NEW");
       render();
-      openMissionEditor("editTitle");
+      if (!title) openMissionEditor("editTitle");
       toast("MISSION CREATED");
+      ttyWrite("SYS", `${mission.codename} CREATED`, "ok");
+    }
+
+    function openMissionByCode(code) {
+      const mission = missionByCode(code);
+      if (!mission) return ttyWrite("ERR", "MISSION NOT FOUND", "bad");
+      selectedId = mission.id;
+      render();
+      openMissionEditor();
+      ttyWrite("SYS", `${mission.codename} OPEN`, "ok");
+    }
+
+    function setMissionStatusByCode(code, status) {
+      const mission = missionByCode(code);
+      if (!mission) return ttyWrite("ERR", "MISSION NOT FOUND", "bad");
+      moveMission(mission.id, status);
+      ttyWrite("SYS", `${mission.codename} -> ${status.toUpperCase()}`, "ok");
+    }
+
+    function terminalFind(query) {
+      search = query;
+      $("search").value = query;
+      filter = "all";
+      render();
+      ttyWrite("SYS", `${visibleMissions().length} MATCHES`, "ok");
     }
 
     function openMissionEditor(focusId = "editTitle") {
@@ -1231,8 +1386,26 @@
       if (!mission || !STATUSES[status]) return;
       mission.status = status;
       if (status === "done") mission.progress = 100;
+      mission.order = nextOrder(status);
       selectedId = id;
       save("MOVE");
+      render();
+    }
+
+    function reorderMission(id, status, beforeId = null) {
+      const mission = state.missions.find((item) => item.id === id);
+      if (!mission || !STATUSES[status]) return;
+      const ordered = state.missions
+        .filter((item) => item.id !== id && item.status === status)
+        .sort((a, b) => a.order - b.order);
+      const beforeIndex = beforeId ? ordered.findIndex((item) => item.id === beforeId) : -1;
+      const insertAt = beforeIndex >= 0 ? beforeIndex : ordered.length;
+      ordered.splice(insertAt, 0, mission);
+      mission.status = status;
+      if (status === "done") mission.progress = 100;
+      ordered.forEach((item, index) => { item.order = index; });
+      selectedId = id;
+      save("REORDER");
       render();
     }
 
@@ -1259,9 +1432,16 @@
       });
     }
 
-    function exportData() {
-      downloadJson(state, `mission-control-${new Date().toISOString().slice(0, 10)}.json`);
+    function exportData(stamp = "") {
+      const suffix = stamp || new Date().toISOString().slice(0, 10);
+      downloadJson(state, `mission-control-${suffix}.json`);
       ttyWrite("SYS", "JSON EXPORTED", "ok");
+    }
+
+    function backupData() {
+      storeAutoBackup("MANUAL");
+      downloadJson({ ...state, exportedAt: new Date().toISOString() }, `mission-control-backup-${dateStamp()}.json`);
+      ttyWrite("SYS", "BACKUP EXPORTED", "ok");
     }
 
     function importJson(text) {
@@ -1270,6 +1450,17 @@
       save("IMPORT");
       render();
       ttyWrite("SYS", "JSON IMPORTED", "ok");
+    }
+
+    function resetBoard() {
+      confirmMessage("SYS.RESET", "RESET BOARD AND CLEAR ALL MISSIONS?", "Reset", () => {
+        storeAutoBackup("PRE-RESET");
+        state = normalizeData({ missions: [], log: state.log });
+        selectedId = null;
+        save("RESET");
+        render();
+        ttyWrite("SYS", "BOARD RESET", "ok");
+      });
     }
 
     async function copyBrief() {
@@ -1286,7 +1477,7 @@
       return state.missions
         .filter((mission) => filter === "all" || mission.status === filter)
         .filter((mission) => !q || [mission.title, mission.codename, mission.nextAction, mission.priority, mission.referenceUrl, ...mission.tags].join(" ").toLowerCase().includes(q))
-        .sort((a, b) => (PRIORITY[a.priority] ?? 9) - (PRIORITY[b.priority] ?? 9) || a.title.localeCompare(b.title));
+        .sort((a, b) => a.order - b.order || (PRIORITY[a.priority] ?? 9) - (PRIORITY[b.priority] ?? 9) || a.title.localeCompare(b.title));
     }
 
     function count(status) {
@@ -1297,8 +1488,109 @@
       return state.missions.find((mission) => mission.id === selectedId) || null;
     }
 
+    function missionByCode(code = "") {
+      const needle = String(code || "").trim().toLowerCase();
+      return state.missions.find((mission) => mission.codename.toLowerCase() === needle || mission.title.toLowerCase() === needle) || null;
+    }
+
     function nextCode() {
       return `M-${String(state.missions.length + 1).padStart(3, "0")}`;
+    }
+
+    function nextOrder(status) {
+      const orders = state.missions.filter((mission) => mission.status === status).map((mission) => Number(mission.order) || 0);
+      return orders.length ? Math.max(...orders) + 1 : 0;
+    }
+
+    function addLog(action, detail = "") {
+      state.log = [...(state.log || []), { at: new Date().toISOString(), action, detail }].slice(-120);
+    }
+
+    function openLogWindow() {
+      $("logWindowBody").textContent = state.log?.length
+        ? state.log.slice().reverse().map((item) => `${item.at.slice(0, 19).replace("T", " ")}  ${item.action}  ${item.detail}`).join("\n")
+        : "NO LOG";
+      openWindow("logWindow");
+    }
+
+    function storeAutoBackup(reason) {
+      try {
+        const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || "[]");
+        backups.push({ at: new Date().toISOString(), reason, state });
+        localStorage.setItem(BACKUP_KEY, JSON.stringify(backups.slice(-8)));
+      } catch {}
+    }
+
+    function dateStamp() {
+      return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    }
+
+    function parseCommand(input) {
+      return [...input.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((match) => match[1] ?? match[2] ?? match[3]);
+    }
+
+    function autocompleteTerminal(input) {
+      const text = input.value;
+      const parts = text.split(/\s+/);
+      const last = parts[parts.length - 1]?.toLowerCase() || "";
+      const candidates = [...COMMANDS, ...state.missions.map((mission) => mission.codename), ...LANES];
+      const hit = candidates.find((item) => item.toLowerCase().startsWith(last));
+      if (!hit) return;
+      parts[parts.length - 1] = hit;
+      input.value = parts.join(" ");
+      input.setSelectionRange(input.value.length, input.value.length);
+      beep(720);
+    }
+
+    function showHelp() {
+      showMessage("SYS.HELP", [
+        "new \"Mission title\"",
+        "open M-001",
+        "done M-001 / scan M-001 / queue M-001",
+        "find htf4",
+        "filter all|queue|scan|done",
+        "backup / export / import / reset",
+        "log / sound / theme / brief / clear",
+        "",
+        "Drag cards between lanes or inside a lane to reorder."
+      ].join("\n"));
+      ttyWrite("SYS", "HELP WINDOW OPEN", "ok");
+    }
+
+    function showTribute() {
+      const frame = [
+        "+----------------+",
+        "|  TEMPLE LIGHT  |",
+        "|  WRITE CODE    |",
+        "|  KEEP IT FREE  |",
+        "+----------------+"
+      ].join("\n");
+      showMessage("SYS.TRIBUTE", `${frame}\n\nIn memory of Terry A. Davis (1969-2018).\nRespect for the engineering and the singular vision.\n\nEASTER EGG: TYPE temple`);
+      ttyWrite("SYS", "TRIBUTE SIGNAL OPEN", "ok");
+    }
+
+    function toggleSound() {
+      soundOn = !soundOn;
+      localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off");
+      beep(660);
+      ttyWrite("SYS", `SOUND ${soundOn ? "ON" : "OFF"}`, "ok");
+    }
+
+    function beep(freq = 520) {
+      if (!soundOn) return;
+      try {
+        audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        osc.type = "square";
+        gain.gain.setValueAtTime(0.025, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.07);
+      } catch {}
     }
 
     function showMessage(title, message, actions = [{ label: "OK", value: "close" }], onAction = null) {
@@ -1601,6 +1893,7 @@
       const card = event.target.closest(".card");
       if (!card) return;
       event.dataTransfer.setData("text/plain", card.dataset.id);
+      card.classList.add("dragging");
     });
 
     $("lanes").addEventListener("dragover", (event) => {
@@ -1608,6 +1901,10 @@
       if (!drop) return;
       event.preventDefault();
       drop.classList.add("drag-over");
+    });
+
+    $("lanes").addEventListener("dragend", (event) => {
+      event.target.closest(".card")?.classList.remove("dragging");
     });
 
     $("lanes").addEventListener("dragleave", (event) => {
@@ -1620,8 +1917,18 @@
       if (!drop) return;
       event.preventDefault();
       drop.classList.remove("drag-over");
-      moveMission(event.dataTransfer.getData("text/plain"), drop.dataset.drop);
+      const after = getDropAfterCard(drop, event.clientY);
+      reorderMission(event.dataTransfer.getData("text/plain"), drop.dataset.drop, after?.dataset.id || null);
     });
+
+    function getDropAfterCard(container, y) {
+      const cards = [...container.querySelectorAll(".card:not(.dragging)")];
+      return cards.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        return offset < 0 && offset > closest.offset ? { offset, element: child } : closest;
+      }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    }
 
     $("editor").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -1630,6 +1937,11 @@
 
     $("cloneMission").addEventListener("click", cloneMission);
     $("deleteMission").addEventListener("click", deleteMission);
+    $("clearLog").addEventListener("click", () => {
+      state.log = [];
+      save("LOG CLEAR");
+      openLogWindow();
+    });
     $("ttyForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const input = $("ttyInput");
@@ -1640,6 +1952,12 @@
       } catch (err) {
         ttyWrite("ERR", err.message || "COMMAND FAILED", "bad");
       }
+    });
+
+    $("ttyInput").addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+      event.preventDefault();
+      autocompleteTerminal(event.currentTarget);
     });
 
     document.querySelector(".right").addEventListener("click", (event) => {
