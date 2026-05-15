@@ -496,19 +496,15 @@
     }
 
     .tty {
-      display: grid;
-      grid-template-rows: minmax(0, 1fr) auto;
       min-height: 0;
       height: 100%;
-      overflow: hidden;
+      overflow: auto;
       background: var(--white);
       color: var(--blue);
     }
 
     .tty-output {
-      min-height: 0;
-      overflow: auto;
-      padding: 4px;
+      padding: 4px 4px 0;
       color: var(--blue);
       font-weight: 900;
       line-height: 1.05;
@@ -1100,12 +1096,12 @@
     }
 
     function scrollTtyTop() {
-      $("ttyOutput").scrollTop = 0;
+      $("ttyOutput").closest(".tty").scrollTop = 0;
     }
 
     function scrollTtyBottom() {
-      const output = $("ttyOutput");
-      output.scrollTop = output.scrollHeight;
+      const tty = $("ttyOutput").closest(".tty");
+      tty.scrollTop = tty.scrollHeight;
     }
 
     async function runTtyCommand(raw) {
