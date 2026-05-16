@@ -1,6 +1,6 @@
 # Mission Control
 
-![Mission Control thumbnail](assets/og.svg)
+<img src="assets/icon.svg" alt="Mission Control icon" width="96">
 
 A free, local-first, 16-color mission board dedicated to Terry A. Davis.
 
