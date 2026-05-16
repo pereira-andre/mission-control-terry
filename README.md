@@ -8,7 +8,7 @@ This is a single-file browser app inspired by old command surfaces and the clari
 
 ## Screenshot
 
-![Mission Control screenshot](assets/screenshot.png)
+![Mission Control screenshot](assets/screenshot.svg)
 
 ## Features
 

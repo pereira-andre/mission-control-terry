@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1270 710" role="img" aria-label="Mission Control screenshot">
+  <defs>
+    <style>
+      .mono{font-family:"Courier New",monospace;font-weight:700}
+      .small{font-size:14px}.base{font-size:16px}.mid{font-size:18px}.big{font-size:20px}
+    </style>
+  </defs>
+  <rect width="1270" height="710" fill="#ffffff"/>
+  <rect x="3" y="3" width="1264" height="704" fill="#ffffff" stroke="#0000aa" stroke-width="4"/>
+  <rect x="8" y="8" width="1254" height="694" fill="#ffffff" stroke="#ffffff" stroke-width="3"/>
+  <rect x="11" y="11" width="1248" height="688" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+
+  <rect x="12" y="12" width="1246" height="21" fill="#ffffff"/>
+  <text x="25" y="28" class="mono base" fill="#0000aa">File  Edit  View  Help</text>
+
+  <rect x="12" y="34" width="1246" height="21" fill="#0000aa"/>
+  <text x="399" y="50" class="mono small" fill="#ffffff">SYS_BOOT OK / 3 MISSIONS / 2 QUEUE / 1 SCAN / 0 DONE / TIME 11:54:40 PM</text>
+
+  <rect x="12" y="55" width="171" height="648" fill="#0000aa"/>
+  <text x="18" y="71" class="mono small" fill="#55ffff">+==============+</text>
+  <text x="35" y="90" class="mono base" fill="#ffff55">MISSION CTRL</text>
+  <text x="35" y="109" class="mono base" fill="#55ffff">.    *    .</text>
+  <text x="52" y="128" class="mono base" fill="#55ffff">--[M]--</text>
+  <text x="69" y="147" class="mono base" fill="#55ffff">\|/</text>
+  <text x="35" y="166" class="mono base" fill="#ffff55">ORBIT</text>
+  <text x="18" y="184" class="mono small" fill="#55ffff">+==============+</text>
+  <text x="17" y="201" class="mono small" fill="#ffffff">================</text>
+  <text x="17" y="219" class="mono base" fill="#55ff55">CPUS  8</text>
+  <text x="17" y="236" class="mono base" fill="#55ff55">RAM   16G</text>
+  <text x="17" y="253" class="mono base" fill="#ffffff">HEAP  0%</text>
+  <text x="17" y="270" class="mono base" fill="#ffffff">MEM   9.5M</text>
+  <text x="17" y="287" class="mono base" fill="#55ff55">STORE 0%</text>
+  <text x="17" y="304" class="mono base" fill="#ffffff">DISK  0B</text>
+  <text x="17" y="321" class="mono base" fill="#55ff55">BAT   100%+</text>
+  <text x="17" y="338" class="mono base" fill="#55ff55">NET   ONLINE</text>
+  <text x="17" y="355" class="mono base" fill="#ffffff">TYPE  N/A</text>
+  <text x="17" y="372" class="mono base" fill="#ffffff">RTT   --</text>
+  <text x="17" y="389" class="mono base" fill="#ffffff">DL    --</text>
+  <text x="17" y="406" class="mono base" fill="#55ff55">FPS   75</text>
+  <text x="17" y="423" class="mono base" fill="#55ff55">LAG   0ms</text>
+  <text x="17" y="440" class="mono base" fill="#55ff55">LOAD  19%</text>
+  <text x="17" y="457" class="mono base" fill="#ffffff">UP    891m04s</text>
+  <text x="17" y="474" class="mono base" fill="#ffffff">HOST  LOCAL</text>
+  <text x="17" y="491" class="mono base" fill="#55ff55">TIME  11:54:40 PM</text>
+  <text x="17" y="508" class="mono small" fill="#ffffff">================</text>
+  <text x="17" y="526" class="mono base" fill="#ffff55">SIGNAL MAP</text>
+  <text x="17" y="543" class="mono base" fill="#55ffff">C00[##......]</text>
+  <text x="17" y="560" class="mono base" fill="#55ffff">C01[#.......]</text>
+  <text x="17" y="577" class="mono base" fill="#55ffff">C02[##......]</text>
+  <text x="17" y="594" class="mono base" fill="#55ffff">C03[####....]</text>
+  <text x="17" y="611" class="mono base" fill="#55ffff">C04[##......]</text>
+  <text x="17" y="628" class="mono base" fill="#55ffff">C05[##......]</text>
+  <text x="17" y="645" class="mono base" fill="#55ffff">C06[#.......]</text>
+  <text x="17" y="662" class="mono base" fill="#55ffff">C07[##......]</text>
+  <text x="17" y="679" class="mono small" fill="#ffffff">================</text>
+
+  <rect x="184" y="55" width="690" height="648" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <rect x="185" y="56" width="688" height="21" fill="#0000aa"/>
+  <text x="190" y="72" class="mono base" fill="#ffff55">SYS.STATUS LOCAL</text>
+  <rect x="185" y="77" width="172" height="48" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <text x="193" y="101" class="mono mid" fill="#0000aa">3</text>
+  <text x="193" y="119" class="mono small" fill="#00aa00">ALL</text>
+  <rect x="357" y="77" width="172" height="48" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <text x="365" y="101" class="mono mid" fill="#aa00aa">2</text>
+  <text x="365" y="119" class="mono small" fill="#00aa00">QUEUE</text>
+  <rect x="529" y="77" width="170" height="48" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <text x="537" y="101" class="mono mid" fill="#00aaaa">1</text>
+  <text x="537" y="119" class="mono small" fill="#00aa00">SCAN</text>
+  <rect x="699" y="77" width="174" height="48" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <text x="707" y="101" class="mono mid" fill="#00aa00">0</text>
+  <text x="707" y="119" class="mono small" fill="#00aa00">DONE</text>
+  <rect x="185" y="126" width="688" height="22" fill="#0000aa"/>
+  <text x="190" y="142" class="mono base" fill="#ffff55">MISSION.INDEX 3 SHOWING</text>
+  <rect x="188" y="151" width="470" height="28" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <text x="194" y="170" class="mono base" fill="#888888">C:\MISSION&gt; FIND ...</text>
+  <rect x="661" y="151" width="45" height="28" fill="#ffff55"/>
+  <text x="672" y="170" class="mono base" fill="#000000">ALL</text>
+  <rect x="707" y="151" width="61" height="28" fill="#0000aa"/>
+  <text x="713" y="170" class="mono base" fill="#ffffff">QUEUE</text>
+  <rect x="769" y="151" width="50" height="28" fill="#0000aa"/>
+  <text x="778" y="170" class="mono base" fill="#ffffff">SCAN</text>
+  <rect x="820" y="151" width="51" height="28" fill="#0000aa"/>
+  <text x="828" y="170" class="mono base" fill="#ffffff">DONE</text>
+
+  <rect x="185" y="180" width="229" height="523" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <rect x="185" y="180" width="229" height="21" fill="#0000aa"/>
+  <text x="190" y="196" class="mono base" fill="#ffff55">QUEUE 2</text>
+  <rect x="188" y="201" width="223" height="187" fill="#ffffff" stroke="#aa00aa" stroke-width="3"/>
+  <text x="193" y="220" class="mono base" fill="#0000aa">HTF4 CONFIG</text>
+  <text x="193" y="239" class="mono base" fill="#000000">Setup HTF4, run it</text>
+  <text x="193" y="257" class="mono base" fill="#000000">well on paper mode.</text>
+  <text x="193" y="275" class="mono base" fill="#000000">Get results, calibrate</text>
+  <text x="193" y="293" class="mono base" fill="#000000">it, till profitable</text>
+  <text x="193" y="311" class="mono base" fill="#000000">and move to real mode.</text>
+  <text x="193" y="329" class="mono small" fill="#aa00aa">URL &gt;</text>
+  <text x="193" y="346" class="mono small" fill="#aa00aa">app.alpaca.markets/dashboar</text>
+  <text x="193" y="363" class="mono small" fill="#aa00aa">d/overview</text>
+  <text x="193" y="380" class="mono small" fill="#0000aa">M-001 critical 50% research</text>
+  <rect x="190" y="388" width="72" height="20" fill="#0000aa"/><text x="219" y="404" class="mono base" fill="#ffffff">Q</text>
+  <rect x="264" y="388" width="73" height="20" fill="#0000aa"/><text x="292" y="404" class="mono base" fill="#ffffff">S</text>
+  <rect x="339" y="388" width="72" height="20" fill="#0000aa"/><text x="368" y="404" class="mono base" fill="#ffffff">D</text>
+  <rect x="188" y="389" width="223" height="128" fill="#ffffff" stroke="#aa00aa" stroke-width="3"/>
+  <text x="193" y="407" class="mono base" fill="#0000aa">BUSINESS AUTOMATION</text>
+  <text x="193" y="426" class="mono base" fill="#000000">Prepare a business</text>
+  <text x="193" y="444" class="mono base" fill="#000000">automation strategy</text>
+  <text x="193" y="462" class="mono base" fill="#000000">and earn passive</text>
+  <text x="193" y="480" class="mono base" fill="#000000">income.</text>
+  <text x="193" y="497" class="mono small" fill="#0000aa">M-003 high 35% launch</text>
+  <rect x="190" y="499" width="72" height="20" fill="#0000aa"/><text x="219" y="515" class="mono base" fill="#ffffff">Q</text>
+  <rect x="264" y="499" width="73" height="20" fill="#0000aa"/><text x="292" y="515" class="mono base" fill="#ffffff">S</text>
+  <rect x="339" y="499" width="72" height="20" fill="#0000aa"/><text x="368" y="515" class="mono base" fill="#ffffff">D</text>
+
+  <rect x="414" y="180" width="230" height="523" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <rect x="414" y="180" width="230" height="21" fill="#0000aa"/>
+  <text x="420" y="196" class="mono base" fill="#ffff55">SCAN 1</text>
+  <rect x="417" y="201" width="225" height="97" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <text x="422" y="220" class="mono base" fill="#0000aa">PRAGTICO</text>
+  <text x="422" y="239" class="mono base" fill="#000000">Finish UAb project +</text>
+  <text x="422" y="257" class="mono base" fill="#000000">Report</text>
+  <text x="422" y="274" class="mono small" fill="#0000aa">M-002 critical 50% study</text>
+  <rect x="419" y="274" width="72" height="20" fill="#0000aa"/><text x="449" y="290" class="mono base" fill="#ffffff">Q</text>
+  <rect x="493" y="274" width="72" height="20" fill="#0000aa"/><text x="521" y="290" class="mono base" fill="#ffffff">S</text>
+  <rect x="567" y="274" width="72" height="20" fill="#0000aa"/><text x="596" y="290" class="mono base" fill="#ffffff">D</text>
+
+  <rect x="644" y="180" width="229" height="523" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <rect x="644" y="180" width="229" height="21" fill="#0000aa"/>
+  <text x="650" y="196" class="mono base" fill="#ffff55">DONE 0</text>
+  <text x="650" y="221" class="mono base" fill="#aa00aa">NO MISSION</text>
+
+  <rect x="880" y="55" width="378" height="648" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
+  <rect x="881" y="56" width="376" height="21" fill="#0000aa"/>
+  <text x="886" y="72" class="mono base" fill="#ffff55">SYS.TTY 4L</text>
+  <text x="886" y="94" class="mono small" fill="#aa00aa">SYS</text>
+  <text x="968" y="94" class="mono small" fill="#55ff55">TTY CLEAR</text>
+  <text x="886" y="112" class="mono small" fill="#aa00aa">C:\SYS&gt;</text>
+  <text x="968" y="112" class="mono small" fill="#aa00aa">help</text>
+  <text x="886" y="130" class="mono small" fill="#aa00aa">CMD</text>
+  <text x="968" y="130" class="mono small" fill="#55ff55">new, edit, theme, export,</text>
+  <text x="968" y="148" class="mono small" fill="#55ff55">import</text>
+  <text x="886" y="166" class="mono small" fill="#aa00aa">CMD</text>
+  <text x="968" y="166" class="mono small" fill="#55ff55">filter all|queue|scan|done,</text>
+  <text x="968" y="184" class="mono small" fill="#55ff55">brief, status, clear</text>
+  <text x="886" y="202" class="mono small" fill="#aa00aa">C:\SYS&gt;</text>
+  <text x="968" y="202" class="mono small" fill="#888888">help</text>
+
+  <rect x="612" y="695" width="48" height="15" fill="#ffffff"/>
+  <text x="622" y="707" class="mono small" fill="#0000aa">EOF</text>
+</svg>
