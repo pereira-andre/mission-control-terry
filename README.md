@@ -6,6 +6,10 @@ A free, local-first, 16-color mission board dedicated to Terry A. Davis.
 
 This is a single-file browser app inspired by old command surfaces and the clarity of direct tools. It stores your board in `localStorage`, runs without a backend, and can be opened directly from `index.html`.
 
+## Screenshot
+
+![Mission Control screenshot](assets/screenshot.png)
+
 ## Features
 
 - Three-lane mission board: `QUEUE`, `SCAN`, `DONE`
