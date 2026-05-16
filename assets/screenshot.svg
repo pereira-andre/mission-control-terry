@@ -86,26 +86,26 @@
   <rect x="185" y="180" width="229" height="21" fill="#0000aa"/>
   <text x="190" y="196" class="mono base" fill="#ffff55">QUEUE 2</text>
   <rect x="188" y="201" width="223" height="187" fill="#ffffff" stroke="#aa00aa" stroke-width="3"/>
-  <text x="193" y="220" class="mono base" fill="#0000aa">HTF4 CONFIG</text>
-  <text x="193" y="239" class="mono base" fill="#000000">Setup HTF4, run it</text>
-  <text x="193" y="257" class="mono base" fill="#000000">well on paper mode.</text>
-  <text x="193" y="275" class="mono base" fill="#000000">Get results, calibrate</text>
-  <text x="193" y="293" class="mono base" fill="#000000">it, till profitable</text>
-  <text x="193" y="311" class="mono base" fill="#000000">and move to real mode.</text>
+  <text x="193" y="220" class="mono base" fill="#0000aa">ORBITAL CHECKLIST</text>
+  <text x="193" y="239" class="mono base" fill="#000000">Verify local build,</text>
+  <text x="193" y="257" class="mono base" fill="#000000">review keyboard flow,</text>
+  <text x="193" y="275" class="mono base" fill="#000000">test import/export,</text>
+  <text x="193" y="293" class="mono base" fill="#000000">then mark ready for</text>
+  <text x="193" y="311" class="mono base" fill="#000000">public demo.</text>
   <text x="193" y="329" class="mono small" fill="#aa00aa">URL &gt;</text>
-  <text x="193" y="346" class="mono small" fill="#aa00aa">app.alpaca.markets/dashboar</text>
-  <text x="193" y="363" class="mono small" fill="#aa00aa">d/overview</text>
-  <text x="193" y="380" class="mono small" fill="#0000aa">M-001 critical 50% research</text>
+  <text x="193" y="346" class="mono small" fill="#aa00aa">example.com/project/status</text>
+  <text x="193" y="363" class="mono small" fill="#aa00aa">/overview</text>
+  <text x="193" y="380" class="mono small" fill="#0000aa">M-001 critical 50% launch</text>
   <rect x="190" y="388" width="72" height="20" fill="#0000aa"/><text x="219" y="404" class="mono base" fill="#ffffff">Q</text>
   <rect x="264" y="388" width="73" height="20" fill="#0000aa"/><text x="292" y="404" class="mono base" fill="#ffffff">S</text>
   <rect x="339" y="388" width="72" height="20" fill="#0000aa"/><text x="368" y="404" class="mono base" fill="#ffffff">D</text>
   <rect x="188" y="389" width="223" height="128" fill="#ffffff" stroke="#aa00aa" stroke-width="3"/>
-  <text x="193" y="407" class="mono base" fill="#0000aa">BUSINESS AUTOMATION</text>
-  <text x="193" y="426" class="mono base" fill="#000000">Prepare a business</text>
-  <text x="193" y="444" class="mono base" fill="#000000">automation strategy</text>
-  <text x="193" y="462" class="mono base" fill="#000000">and earn passive</text>
-  <text x="193" y="480" class="mono base" fill="#000000">income.</text>
-  <text x="193" y="497" class="mono small" fill="#0000aa">M-003 high 35% launch</text>
+  <text x="193" y="407" class="mono base" fill="#0000aa">BACKUP ROUTINE</text>
+  <text x="193" y="426" class="mono base" fill="#000000">Export board snapshot</text>
+  <text x="193" y="444" class="mono base" fill="#000000">and confirm restore</text>
+  <text x="193" y="462" class="mono base" fill="#000000">works before the next</text>
+  <text x="193" y="480" class="mono base" fill="#000000">release.</text>
+  <text x="193" y="497" class="mono small" fill="#0000aa">M-003 high 35% backup</text>
   <rect x="190" y="499" width="72" height="20" fill="#0000aa"/><text x="219" y="515" class="mono base" fill="#ffffff">Q</text>
   <rect x="264" y="499" width="73" height="20" fill="#0000aa"/><text x="292" y="515" class="mono base" fill="#ffffff">S</text>
   <rect x="339" y="499" width="72" height="20" fill="#0000aa"/><text x="368" y="515" class="mono base" fill="#ffffff">D</text>
@@ -114,10 +114,10 @@
   <rect x="414" y="180" width="230" height="21" fill="#0000aa"/>
   <text x="420" y="196" class="mono base" fill="#ffff55">SCAN 1</text>
   <rect x="417" y="201" width="225" height="97" fill="#ffffff" stroke="#0000aa" stroke-width="2"/>
-  <text x="422" y="220" class="mono base" fill="#0000aa">PRAGTICO</text>
-  <text x="422" y="239" class="mono base" fill="#000000">Finish UAb project +</text>
-  <text x="422" y="257" class="mono base" fill="#000000">Report</text>
-  <text x="422" y="274" class="mono small" fill="#0000aa">M-002 critical 50% study</text>
+  <text x="422" y="220" class="mono base" fill="#0000aa">DOCS REVIEW</text>
+  <text x="422" y="239" class="mono base" fill="#000000">Finish README polish +</text>
+  <text x="422" y="257" class="mono base" fill="#000000">release notes</text>
+  <text x="422" y="274" class="mono small" fill="#0000aa">M-002 critical 50% docs</text>
   <rect x="419" y="274" width="72" height="20" fill="#0000aa"/><text x="449" y="290" class="mono base" fill="#ffffff">Q</text>
   <rect x="493" y="274" width="72" height="20" fill="#0000aa"/><text x="521" y="290" class="mono base" fill="#ffffff">S</text>
   <rect x="567" y="274" width="72" height="20" fill="#0000aa"/><text x="596" y="290" class="mono base" fill="#ffffff">D</text>
